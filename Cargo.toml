@@ -1,0 +1,23 @@
+[package]
+name = "awedio"
+version = "0.1.0"
+edition = "2021"
+authors = ["Ben Hansen <bh@benhansen.io>"]
+description = "A low-overhead and adaptable audio playback library"
+license = "MIT OR Apache-2.0"
+keywords = ["audio", "playback"]
+categories = ["multimedia::audio", "embedded"]
+repository = "https://github.com/10buttons/awedio"
+
+[features]
+default = ["cpal", "async", "mp3", "wav"]
+mp3 = ["dep:rmp3"]
+wav = ["dep:hound"]
+async = ["dep:tokio"]
+cpal = ["dep:cpal"]
+
+[dependencies]
+tokio = { version = "1.26.0", features = ["sync"], optional = true }
+hound = { version = "3.5.0", optional = true }
+rmp3 = { version = "0.3.1", features = ["std"], optional = true }
+cpal = { version = "0.14.2", optional = true }
