@@ -22,8 +22,8 @@ pub trait Sound: Send {
     /// Retrieve the next sample or notification if something has changed.
     /// The first sample is for the first channel and the second is the for
     /// second and so on until channel_count and then wraps back to the first
-    /// channel. If any NextSample variant besides Sample is returned then
-    /// the following NextSample::Sample is for the first channel. If a Sound
+    /// channel. If any NextSample variant besides `Sample` is returned then
+    /// the following `NextSample::Sample` is for the first channel. If a Sound
     /// has returned `Paused` it is expected that the consumer will call
     /// next_sample again in the future. If a Sound has returned `Finished` it
     /// is not expected for the consumer to call next_sample again but if called

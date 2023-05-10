@@ -2,8 +2,10 @@ use std::sync::Arc;
 
 use crate::{NextSample, Sound};
 
-/// A Sound that stores all samples on the heap. The heap samples can be shared
-/// between multiple MemorySounds that can be played simultaneously.
+/// A Sound that stores all samples on the heap.
+///
+/// The heap samples can be shared between multiple MemorySounds that can be
+/// played simultaneously. Optionally the sound can repeat forever.
 #[derive(Clone)]
 pub struct MemorySound {
     samples: Arc<Vec<i16>>,

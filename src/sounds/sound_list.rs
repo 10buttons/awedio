@@ -2,8 +2,10 @@ use crate::sound::NextSample;
 use crate::sounds::wrappers::{AddSound, ClearSounds};
 use crate::Sound;
 
-/// Play Sounds sequentially one after the other. Only after a Sound has
-/// finished will the next Sound start being played.
+/// Play Sounds sequentially one after the other.
+///
+/// Only after a Sound has returned `NextSample::Finished` will the next Sound
+/// start playing.
 pub struct SoundList {
     sounds: Vec<Box<dyn Sound>>,
     was_empty: bool,

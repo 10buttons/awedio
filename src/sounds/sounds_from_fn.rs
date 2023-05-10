@@ -2,10 +2,11 @@ use crate::{NextSample, Sound};
 
 type SoundGenerator = Box<dyn FnMut() -> Option<Box<dyn Sound>> + Send>;
 
-/// Call a generator function that produces a [`Sound`]. Then call the generator
-/// again each time the previously returned `Sound` has completed, continuing
-/// for as long as the generator function does not return `None` (possibly
-/// forever).
+/// Play sounds produced by a function returning sounds one after the other.
+///
+/// The generator function is called after each previously produced sound has
+/// returned finished until None is returned after which `SoundsFromFn` returns
+/// Finished.
 ///
 /// This can be used to create sounds that loop forever without storing all
 /// samples in memory.
