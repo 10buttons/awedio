@@ -1,4 +1,4 @@
-# Tedio &emsp; [![Docs Passing]][docs.rs] [![Latest Version]][crates.io]
+# Awedio &emsp; [![Docs Passing]][docs.rs] [![Latest Version]][crates.io]
 
 A low-overhead and adaptable audio playback library for Rust.
 
@@ -6,17 +6,15 @@ A low-overhead and adaptable audio playback library for Rust.
 
 Play a single sound file:
 
-```rust
-# fn no_run() -> Result<(), Box<dyn std::error::Error>> {
+```rust no_run
 let (mut manager, backend) = awedio::start()?;
 manager.play(awedio::sounds::open_file("test.wav")?);
-# Ok(())
-# }
+# Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
 Play a sound with adjustable volume controllable after playback has started:
 
-```rust
+```rust no_run
 use awedio::Sound;
 let (mut manager, backend) = awedio::start()?;
 let (sound, mut controller) = awedio::sounds::SineWav::new(400.0)
@@ -41,18 +39,16 @@ controller.set_paused(true);
 - Only pay the performance cost of features if they are needed. For example
   pausability, volume adjustment, or controlling a sound after playback has
   started are all added to a Sound only as needed. This is done by wrapping
-  types that implement [`Sound`][crate::Sound] similar to
-  [`Iterator`][std::iter::Iterator] in the standard library.
+  types that implement [`Sound`] similar to `Iterator` in the standard library.
 - Samples are i16 for simplicity at least for now (if this prevents you from
   using this library please let me know your use case)
 
 ## API Overview
 
-- [Sound][crate::Sound] trait - Provides samples of a sound to be played. Has
+- [Sound] trait - Provides samples of a sound to be played. Has
   functions to modify sounds with wrappers.
-- [Manager][crate::manager::Manager] - Play Sounds to a backend.
-- [SoundList][crate::sounds::SoundList] - A sequence of Sounds to play one after
-  the other.
+- [Manager] - Play Sounds to a backend.
+- [SoundList] - A sequence of Sounds to play one after the other.
 
 ## Current backends
 
@@ -61,23 +57,22 @@ controller.set_paused(true);
 - [esp32][awedio_esp32] - For esp32 microcontrollers using
   esp-idf. Implemented in its [own crate][awedio_esp32].
 
-Backends are implemented by pulling samples from the
-[`Renderer`][crate::manager::Renderer].
+Backends are implemented by pulling samples from the [Renderer].
 
 ## Cargo Features
 
 - `async`: Enable async features that depend on
   [tokio-sync](https://docs.rs/tokio/latest/tokio/sync/index.html)
 - `cpal`: Enable the [cpal] backend.
-- `wav`: Enable Wav file decoding using [Hound](https://crates.io/crates/hound)
-- `mp3`: Enable mp3 file decoding using [rmp3](https://crates.io/crates/rmp3)
+- `wav`: Enable Wav file decoding using [Hound](https://docs.rs/hound)
+- `mp3`: Enable mp3 file decoding using [rmp3](https://docs.rs/rmp3)
 
 By default all features are enabled. Depending libraries should disable default features.
 
 ## Motivation
 
 Built for creating activities for [10 Buttons](https://www.10Buttons.com), a
-a screen-less tablet for kids. Purposefully kept generic to be usable in other
+screen-less tablet for kids. Purposefully kept generic to be usable in other
 contexts.
 
 ## Alternatives and Inspiration
@@ -118,3 +113,7 @@ be dual licensed as above, without any additional terms or conditions.
 [docs.rs]: https://docs.rs/awedio
 [cpal]: https://docs.rs/cpal
 [awedio_esp32]: https://docs.rs/awedio_esp32
+[Sound]: https://docs.rs/awedio/latest/awedio/trait.Sound.html
+[Manager]: https://docs.rs/awedio/latest/awedio/manager/struct.Manager.html
+[SoundList]: https://docs.rs/awedio/latest/awedio/sounds/struct.SoundList.html
+[Renderer]: https://docs.rs/awedio/latest/awedio/manager/struct.Renderer.html
