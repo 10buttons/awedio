@@ -19,18 +19,18 @@ pub struct MemorySound {
 /// A [MetadataChanged][NextSample::MetadataChanged] was returned while reading
 /// into a [MemorySound] which is not currently supported.
 #[derive(Debug)]
-pub struct UnexpectedMetadataChange {}
+pub struct UnsupportedMetadataChangeError {}
 
-impl std::fmt::Display for UnexpectedMetadataChange {
+impl std::fmt::Display for UnsupportedMetadataChangeError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "unexpected MetadataChanged encountered when consuming Sound"
+            "unsupported MetadataChanged encountered when consuming Sound"
         )
     }
 }
 
-impl std::error::Error for UnexpectedMetadataChange {}
+impl std::error::Error for UnsupportedMetadataChangeError {}
 
 impl MemorySound {
     /// Create a MemorySound be consuming another Sound and storing the samples
@@ -38,8 +38,8 @@ impl MemorySound {
     ///
     /// It is not currently supported for the the originating sample to change
     /// its metadata (i.e. channel count or sample rate). If it does an
-    /// UnexpectedMetadataChange error is returned.
-    pub fn from_sound(mut orig: impl Sound) -> Result<Self, UnexpectedMetadataChange> {
+    /// UnsupportedMetadataChangeError error is returned.
+    pub fn from_sound(mut orig: impl Sound) -> Result<Self, UnsupportedMetadataChangeError> {
         let channel_count = orig.channel_count();
         let sample_rate = orig.sample_rate();
 
@@ -53,7 +53,7 @@ impl MemorySound {
                 }
                 crate::NextSample::MetadataChanged => {
                     if orig.channel_count() != channel_count || orig.sample_rate() != sample_rate {
-                        return Err(UnexpectedMetadataChange {});
+                        return Err(UnsupportedMetadataChangeError {});
                     }
                     // Sometimes we see a MetadataChanged from a sound just to
                     // ensure that channels stay in sync. Lets ensure that here

@@ -64,8 +64,8 @@ Backends are implemented by pulling samples from the [Renderer].
 - `async`: Enable async features that depend on
   [tokio-sync](https://docs.rs/tokio/latest/tokio/sync/index.html)
 - `cpal`: Enable the [cpal] backend.
-- `wav`: Enable Wav file decoding using [Hound](https://docs.rs/hound)
-- `mp3`: Enable mp3 file decoding using [rmp3](https://docs.rs/rmp3)
+- `wav`: Enable Wav file decoding using [Hound](https://crates.io/crates/hound)
+- `mp3`: Enable mp3 file decoding using [rmp3](https://crates.io/crates/rmp3)
 
 By default all features are enabled. Depending libraries should disable default features.
 
@@ -111,8 +111,8 @@ be dual licensed as above, without any additional terms or conditions.
 [crates.io]: https://crates.io/crates/awedio
 [Docs Passing]: https://img.shields.io/docsrs/awedio.svg
 [docs.rs]: https://docs.rs/awedio
-[cpal]: https://docs.rs/cpal
-[awedio_esp32]: https://docs.rs/awedio_esp32
+[cpal]: https://crates.io/crates/cpal
+[awedio_esp32]: https://crates.io/crates/awedio_esp32
 [Sound]: https://docs.rs/awedio/latest/awedio/trait.Sound.html
 [Manager]: https://docs.rs/awedio/latest/awedio/manager/struct.Manager.html
 [SoundList]: https://docs.rs/awedio/latest/awedio/sounds/struct.SoundList.html

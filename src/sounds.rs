@@ -11,7 +11,7 @@ mod sound_mixer;
 mod sounds_from_fn;
 
 pub use memory_sound::MemorySound;
-pub use memory_sound::UnexpectedMetadataChange;
+pub use memory_sound::UnsupportedMetadataChangeError;
 pub use open_file::open_file;
 pub use open_file::open_file_with_buffer_capacity;
 pub use silence::Silence;

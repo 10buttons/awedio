@@ -2,7 +2,7 @@ use std::ops::{Deref, DerefMut};
 
 use crate::sounds::{
     wrappers::{AdjustableSpeed, AdjustableVolume, Controllable, Controller, Pausable},
-    MemorySound, UnexpectedMetadataChange,
+    MemorySound, UnsupportedMetadataChangeError,
 };
 
 /// A provider of audio samples.
@@ -77,7 +77,7 @@ pub trait Sound: Send {
 
     /// Read the entire sound into memory. MemorySound can be cloned for
     /// efficient reuse. See [MemorySound::from_sound].
-    fn into_memory_sound(self) -> Result<MemorySound, UnexpectedMetadataChange>
+    fn into_memory_sound(self) -> Result<MemorySound, UnsupportedMetadataChangeError>
     where
         Self: Sized,
     {
@@ -88,7 +88,7 @@ pub trait Sound: Send {
     ///
     /// If you do not want to read the entire sound into memory see
     /// [SoundsFromFn][crate::sounds::SoundsFromFn] as an alternative.
-    fn loop_from_memory(self) -> Result<MemorySound, UnexpectedMetadataChange>
+    fn loop_from_memory(self) -> Result<MemorySound, UnsupportedMetadataChangeError>
     where
         Self: Sized,
     {
