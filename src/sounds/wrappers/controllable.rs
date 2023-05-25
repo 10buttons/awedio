@@ -129,7 +129,13 @@ impl<S> Controller<S>
 where
     S: Sound,
 {
-    fn send_command(&mut self, command: Command<S>) {
+    /// Send a custom command to the associated Controllable.
+    ///
+    /// A command is a closure where you are given mutable access to the inner
+    /// sound of the controllable. Many but not all actions are available as
+    /// trait functions on `Controller` but sending a command allows for full
+    /// control.
+    pub fn send_command(&mut self, command: Command<S>) {
         // Ignore the error since it only happens if the receiver
         // has been dropped which is not expected after it has been
         // sent to the manager.
