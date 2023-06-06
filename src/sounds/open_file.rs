@@ -41,13 +41,19 @@ fn open_file_with_reader(
         .unwrap_or_default()
         .to_lowercase();
     let decoder: Box<dyn Sound> = match extension.as_ref() {
+        #[cfg(feature = "mp3")]
+        "mp3" => Box::new(super::decoders::Mp3Decoder::new(reader)),
+        #[cfg(feature = "qoa")]
+        "qoa" => match super::decoders::QoaDecoder::new(reader) {
+            Ok(decoder) => Box::new(decoder),
+            Err(qoaudio::DecodeError::IoError(e)) => return Err(e),
+            Err(_) => return Err(std::io::Error::from(ErrorKind::InvalidData)),
+        },
         #[cfg(feature = "wav")]
         "wav" => Box::new(
             super::decoders::WavDecoder::new(reader)
                 .map_err(|_e| std::io::Error::from(ErrorKind::InvalidData))?,
         ),
-        #[cfg(feature = "mp3")]
-        "mp3" => Box::new(super::decoders::Mp3Decoder::new(reader)),
         "_SILENCE_NEVER_MATCH_" => {
             println!(
                 "to satisfy unused warnings when all features are off: {:?}",

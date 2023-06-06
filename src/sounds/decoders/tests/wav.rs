@@ -8,7 +8,7 @@ fn samples_of_test_file() -> std::io::Result<()> {
     let mut decoder = WavDecoder::new(std::io::Cursor::new(SINE_WAVE_FILE)).unwrap();
     assert_eq!(decoder.sample_rate(), 44100);
     assert_eq!(decoder.channel_count(), 1);
-    assert_eq!(decoder.next_sample(), NextSample::Sample(0)); // 2
+    assert_eq!(decoder.next_sample(), NextSample::Sample(0)); // 1
     assert_eq!(decoder.next_sample(), NextSample::Sample(4647)); // 2
     assert_eq!(decoder.next_sample(), NextSample::Sample(9201)); // 3
     assert_eq!(decoder.next_sample(), NextSample::Sample(13567)); // 4

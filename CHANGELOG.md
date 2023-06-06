@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- feat: add QOA audio format decoder
+- feat: make Controller::send_command public
+
 ## 0.2.0 - 2023-05-11
 
 - update README links
