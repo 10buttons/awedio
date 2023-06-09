@@ -1,7 +1,7 @@
 use std::ops::{Deref, DerefMut};
 
 use crate::sounds::{
-    wrappers::{AdjustableSpeed, AdjustableVolume, Controllable, Controller, Pausable},
+    wrappers::{AdjustableSpeed, AdjustableVolume, Controllable, Controller, Pausable, SetPaused},
     MemorySound, UnsupportedMetadataChangeError,
 };
 
@@ -161,12 +161,22 @@ pub trait Sound: Send {
         AdjustableSpeed::new_with_speed(self, speed_adjustment)
     }
 
-    /// Allow for the sound to be pausable with `set_paused`
+    /// Allow for the sound to be pausable with `set_paused`. Starts unpaused.
     fn pausable(self) -> Pausable<Self>
     where
         Self: Sized,
     {
         Pausable::new(self)
+    }
+
+    /// Allow for the sound to be pausable with `set_paused`. Starts paused.
+    fn paused(self) -> Pausable<Self>
+    where
+        Self: Sized,
+    {
+        let mut to_return = Pausable::new(self);
+        to_return.set_paused(true);
+        to_return
     }
 }
 

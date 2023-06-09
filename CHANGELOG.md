@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- feat: add Sound::paused which starts paused
 - feat: add QOA audio format decoder
 - feat: make Controller::send_command public
 
