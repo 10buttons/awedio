@@ -72,7 +72,7 @@ where
         let next = self.inner.next_sample();
         match next {
             crate::NextSample::Sample(s) => {
-                let adjusted = (s as f32 * self.volume_adjustment).round() as i16;
+                let adjusted = (s as f32 * self.volume_adjustment) as i16;
                 crate::NextSample::Sample(adjusted)
             }
             crate::NextSample::MetadataChanged
