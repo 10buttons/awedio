@@ -8,7 +8,7 @@
 mod adjustable_speed;
 mod adjustable_volume;
 #[cfg(feature = "async")]
-mod async_completion_notifier;
+pub mod async_completion_notifier;
 mod channel_count_converter;
 mod controllable;
 mod pausable;

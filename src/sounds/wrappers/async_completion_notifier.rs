@@ -1,8 +1,10 @@
-use crate::NextSample;
-use crate::Sound;
-use tokio::sync::oneshot;
+//! [AsyncCompletionNotifier] and re-export of the tokio [`oneshot`] channel it
+//! uses for convenience.
 
 use super::Wrapper;
+use crate::NextSample;
+use crate::Sound;
+pub use tokio::sync::oneshot;
 
 /// Notify via a [tokio::sync::oneshot::Receiver] when the contained Sound has
 /// Finished.

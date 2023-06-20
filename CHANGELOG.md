@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- feat: re-export tokio oneshot in async_completion_notifier mod
 - feat: add Sound::paused which starts paused
 - feat: add QOA audio format decoder
 - feat: make Controller::send_command public
