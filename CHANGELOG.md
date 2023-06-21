@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- fix: clear paused sounds too in SoundMixer
 - feat: re-export tokio oneshot in async_completion_notifier mod
 - feat: add Sound::paused which starts paused
 - feat: add QOA audio format decoder

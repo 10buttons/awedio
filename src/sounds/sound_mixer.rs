@@ -167,6 +167,7 @@ impl ClearSounds for SoundMixer {
     /// Remove all audio sounds.
     fn clear(&mut self) {
         self.sounds.clear();
+        self.paused_sounds.clear();
     }
 }
 
