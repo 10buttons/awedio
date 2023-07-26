@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- feat: add CompletionNotifier (blocking, non-async)
 - fix: clear paused sounds too in SoundMixer
 - feat: re-export tokio oneshot in async_completion_notifier mod
 - feat: add Sound::paused which starts paused

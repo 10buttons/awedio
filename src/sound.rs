@@ -123,6 +123,20 @@ pub trait Sound: Send {
         crate::sounds::wrappers::AsyncCompletionNotifier::new(self)
     }
 
+    /// Get notified via a [std::sync::mpsc::Receiver] when this sound
+    /// has Finished.
+    fn with_completion_notifier(
+        self,
+    ) -> (
+        crate::sounds::wrappers::CompletionNotifier<Self>,
+        std::sync::mpsc::Receiver<()>,
+    )
+    where
+        Self: Sized,
+    {
+        crate::sounds::wrappers::CompletionNotifier::new(self)
+    }
+
     /// Allow the volume of the sound to be adjustable with `set_volume`.
     fn with_adjustable_volume(self) -> AdjustableVolume<Self>
     where

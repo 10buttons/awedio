@@ -10,6 +10,7 @@ mod adjustable_volume;
 #[cfg(feature = "async")]
 pub mod async_completion_notifier;
 mod channel_count_converter;
+mod completion_notifier;
 mod controllable;
 mod pausable;
 mod sample_rate_converter;
@@ -22,6 +23,7 @@ pub use adjustable_volume::SetVolume;
 #[cfg(feature = "async")]
 pub use async_completion_notifier::AsyncCompletionNotifier;
 pub use channel_count_converter::ChannelCountConverter;
+pub use completion_notifier::CompletionNotifier;
 pub use controllable::{Controllable, Controller};
 pub use pausable::Pausable;
 pub use pausable::SetPaused;
