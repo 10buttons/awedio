@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- docs: fix ambiguous doc reference
 - docs: add basic play example in examples/
 - feat: add CompletionNotifier (blocking, non-async)
 - fix: clear paused sounds too in SoundMixer

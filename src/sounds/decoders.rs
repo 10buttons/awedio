@@ -1,7 +1,7 @@
 //! Decoders for various audio formats and file types.
 //!
 //! These are normally accessed via
-//! [sounds::open_file][crate::sounds::open_file].
+//! [sounds::open_file][crate::sounds::open_file()].
 #[cfg(feature = "mp3")]
 mod mp3;
 #[cfg(feature = "qoa")]
