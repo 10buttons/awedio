@@ -13,6 +13,7 @@ pub struct ConstantValueSound {
     pub value: i16,
     pub channel_count: u16,
     pub sample_rate: u32,
+    pub metadata_changed: bool,
 }
 
 impl ConstantValueSound {
@@ -21,6 +22,7 @@ impl ConstantValueSound {
             value,
             channel_count: DEFAULT_CHANNEL_COUNT,
             sample_rate: DEFAULT_SAMPLE_RATE,
+            metadata_changed: false,
         }
     }
 }
@@ -35,10 +37,26 @@ impl Sound for ConstantValueSound {
     }
 
     fn next_sample(&mut self) -> crate::NextSample {
+        if self.metadata_changed {
+            self.metadata_changed = false;
+            return crate::NextSample::MetadataChanged;
+        }
         crate::NextSample::Sample(self.value)
     }
 
     fn on_start_of_batch(&mut self) {}
+}
+
+impl ConstantValueSound {
+    pub fn set_channel_count(&mut self, new_count: u16) {
+        self.channel_count = new_count;
+        self.metadata_changed = true;
+    }
+
+    pub fn set_sample_rate(&mut self, new_rate: u32) {
+        self.sample_rate = new_rate;
+        self.metadata_changed = true;
+    }
 }
 
 /// Start at 0, increment by 1 until MAX value then jump to MIN value and

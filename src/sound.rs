@@ -1,7 +1,13 @@
-use std::ops::{Deref, DerefMut};
+use std::{
+    ops::{Deref, DerefMut},
+    time::Duration,
+};
 
 use crate::sounds::{
-    wrappers::{AdjustableSpeed, AdjustableVolume, Controllable, Controller, Pausable, SetPaused},
+    wrappers::{
+        AdjustableSpeed, AdjustableVolume, Controllable, Controller, FinishAfter, Pausable,
+        SetPaused,
+    },
     MemorySound, UnsupportedMetadataChangeError,
 };
 
@@ -191,6 +197,16 @@ pub trait Sound: Send {
         let mut to_return = Pausable::new(self);
         to_return.set_paused(true);
         to_return
+    }
+
+    /// Play the first `duration` of the sound, then finish even if samples remain.
+    ///
+    /// See [FinishAfter].
+    fn finish_after(self, duration: Duration) -> FinishAfter<Self>
+    where
+        Self: Sized,
+    {
+        FinishAfter::new(self, duration)
     }
 }
 

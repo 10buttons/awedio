@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- feat: add finish after sound wrapper
 - docs: fix ambiguous doc reference
 - docs: add basic play example in examples/
 - feat: add CompletionNotifier (blocking, non-async)
