@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- feat!: add Symphonia decoder which supports many formats and codecs
+  Note that feature flags were renamed to remove ambiguity.
 - feat: add finish after sound wrapper
 - docs: fix ambiguous doc reference
 - docs: add basic play example in examples/

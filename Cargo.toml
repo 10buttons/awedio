@@ -10,12 +10,29 @@ categories = ["multimedia::audio", "embedded"]
 repository = "https://github.com/10buttons/awedio"
 
 [features]
-default = ["cpal", "async", "mp3", "wav", "qoa"]
-mp3 = ["dep:rmp3"]
-qoa = ["dep:qoaudio"]
-wav = ["dep:hound"]
+default = ["cpal", "async", "symphonia-all", "qoa"]
 async = ["dep:tokio"]
 cpal = ["dep:cpal"]
+
+rmp3-mp3 = ["dep:rmp3"]
+qoa = ["dep:qoaudio"]
+hound-wav = ["dep:hound"]
+
+symphonia-all = ["symphonia", "symphonia/all"]
+symphonia-isomp4 = ["symphonia", "symphonia/isomp4"]
+symphonia-mkv = ["symphonia", "symphonia/mkv"]
+symphonia-ogg = ["symphonia", "symphonia/ogg"]
+symphonia-wav = ["symphonia", "symphonia/wav"]
+symphonia-aac = ["symphonia", "symphonia/aac"]
+symphonia-adpcm = ["symphonia", "symphonia/adpcm"]
+symphonia-alac = ["symphonia", "symphonia/alac"]
+symphonia-flac = ["symphonia", "symphonia/flac"]
+symphonia-mpa = ["symphonia", "symphonia/mpa"]
+symphonia-mp1 = ["symphonia", "symphonia/mp1"]
+symphonia-mp2 = ["symphonia", "symphonia/mp2"]
+symphonia-mp3 = ["symphonia", "symphonia/mp3"]
+symphonia-pcm = ["symphonia", "symphonia/pcm"]
+symphonia-vorbis = ["symphonia", "symphonia/vorbis"]
 
 [dependencies]
 tokio = { version = "1.26.0", features = ["sync"], optional = true }
@@ -23,3 +40,4 @@ hound = { version = "3.5.0", optional = true }
 rmp3 = { version = "0.3.1", features = ["std"], optional = true }
 cpal = { version = "0.14.2", optional = true }
 qoaudio = { version = "0.6", optional = true }
+symphonia = { version = "0.5.3", optional = true, default-features = false }

@@ -1,5 +1,4 @@
 use crate::Sound;
-use std::io::ErrorKind;
 use std::{fs::File, io::BufReader};
 
 /// Create a Sound that reads from a file with the correct decoder based on the
@@ -14,7 +13,9 @@ use std::{fs::File, io::BufReader};
 /// on the renderer thread as reading from a file could block the renderer.
 /// Consider convert the sound to a memory_sound which is stored entirely in RAM
 /// (and can be cloned cheaply).
-pub fn open_file<P: AsRef<std::path::Path>>(path: P) -> std::io::Result<Box<dyn Sound>> {
+pub fn open_file<P: AsRef<std::path::Path>>(
+    path: P,
+) -> Result<Box<dyn Sound>, Box<dyn std::error::Error>> {
     let file = File::open(path.as_ref())?;
     let reader = BufReader::new(file);
     open_file_with_reader(path.as_ref(), reader)
@@ -24,7 +25,7 @@ pub fn open_file<P: AsRef<std::path::Path>>(path: P) -> std::io::Result<Box<dyn 
 pub fn open_file_with_buffer_capacity<P: AsRef<std::path::Path>>(
     path: P,
     buffer_capacity: usize,
-) -> std::io::Result<Box<dyn Sound>> {
+) -> Result<Box<dyn Sound>, Box<dyn std::error::Error>> {
     let file = File::open(path.as_ref())?;
     let reader = BufReader::with_capacity(buffer_capacity, file);
     open_file_with_reader(path.as_ref(), reader)
@@ -33,7 +34,7 @@ pub fn open_file_with_buffer_capacity<P: AsRef<std::path::Path>>(
 fn open_file_with_reader(
     path: &std::path::Path,
     reader: BufReader<File>,
-) -> std::io::Result<Box<dyn Sound>> {
+) -> Result<Box<dyn Sound>, Box<dyn std::error::Error>> {
     let extension = path
         .extension()
         .unwrap_or_default()
@@ -41,27 +42,19 @@ fn open_file_with_reader(
         .unwrap_or_default()
         .to_lowercase();
     let decoder: Box<dyn Sound> = match extension.as_ref() {
-        #[cfg(feature = "mp3")]
+        #[cfg(feature = "rmp3-mp3")]
         "mp3" => Box::new(super::decoders::Mp3Decoder::new(reader)),
         #[cfg(feature = "qoa")]
-        "qoa" => match super::decoders::QoaDecoder::new(reader) {
-            Ok(decoder) => Box::new(decoder),
-            Err(qoaudio::DecodeError::IoError(e)) => return Err(e),
-            Err(_) => return Err(std::io::Error::from(ErrorKind::InvalidData)),
-        },
-        #[cfg(feature = "wav")]
-        "wav" => Box::new(
-            super::decoders::WavDecoder::new(reader)
-                .map_err(|_e| std::io::Error::from(ErrorKind::InvalidData))?,
-        ),
-        "_SILENCE_NEVER_MATCH_" => {
-            println!(
-                "to satisfy unused warnings when all features are off: {:?}",
-                reader
-            );
-            Box::new(crate::sounds::Silence::new(1, 1000))
-        }
-        _ => return Err(std::io::Error::from(ErrorKind::Unsupported)),
+        "qoa" => Box::new(super::decoders::QoaDecoder::new(reader)?),
+        #[cfg(feature = "hound-wav")]
+        "wav" => Box::new(super::decoders::WavDecoder::new(reader).map_err(Box::new)?),
+        #[cfg(feature = "symphonia")]
+        _ => Box::new(super::decoders::SymphoniaDecoder::new(
+            Box::new(reader.into_inner()),
+            Some(&extension),
+        )?),
+        #[cfg(not(feature = "symphonia"))]
+        _ => return Err(Box::new(std::io::Error::from(ErrorKind::Unsupported))),
     };
     Ok(decoder)
 }

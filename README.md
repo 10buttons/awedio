@@ -2,6 +2,9 @@
 
 A low-overhead and adaptable audio playback library for Rust.
 
+By default supports playing mp3, wav, flac, aac, ogg, qoa and all other formats
+supported by [symphonia](https://crates.io/crates/symphonia).
+
 ## Examples
 
 Play a single sound file:
@@ -64,10 +67,17 @@ Backends are implemented by pulling samples from the [Renderer].
 - `async`: Enable async features that depend on
   [tokio-sync](https://docs.rs/tokio/latest/tokio/sync/index.html)
 - `cpal`: Enable the [cpal] backend.
-- `wav`: Enable Wav file decoding using [Hound](https://crates.io/crates/hound)
-- `mp3`: Enable mp3 file decoding using [rmp3](https://crates.io/crates/rmp3)
+- `symphonia-all`: Enable all formats and codecs supported by
+  [symphonia](https://crates.io/crates/symphonia)
+- `symphonia-`: All feature flags of symphonia are re-exported with the `symphonia-` prefix.
+- `hound-wav`: Enable wav decoding using [Hound](https://crates.io/crates/hound)
+- `rmp3-mp3`: Enable mp3 decoding using [rmp3](https://crates.io/crates/rmp3)
+- `qoa`: Enable qoa decoding using [qoaudio](https://crates.io/crates/qoaudio)
 
-By default all features are enabled. Depending libraries should disable default features.
+By default all features are enabled excluding `hound-wav` and `rmp3-mp3`
+since symphonia handles those formats by default.
+
+Depending libraries should disable default features.
 
 ## Motivation
 
