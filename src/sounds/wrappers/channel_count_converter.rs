@@ -79,12 +79,12 @@ where
         self.inner.sample_rate()
     }
 
-    fn next_sample(&mut self) -> NextSample {
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
         match &mut self.converter_type {
             ConverterType::PassThrough => {
-                let next = self.inner.next_sample();
+                let next = self.inner.next_sample()?;
                 self.handle_possible_channel_count_change(next);
-                next
+                Ok(next)
             }
             ConverterType::MonoToStereo {
                 ref mut last_sample,
@@ -92,9 +92,9 @@ where
                 if let Some(sample) = last_sample {
                     let sample = *sample;
                     *last_sample = None;
-                    NextSample::Sample(sample)
+                    Ok(NextSample::Sample(sample))
                 } else {
-                    let next = self.inner.next_sample();
+                    let next = self.inner.next_sample()?;
                     match next {
                         NextSample::Sample(sample) => {
                             *last_sample = Some(sample);
@@ -103,30 +103,30 @@ where
                         NextSample::Paused | NextSample::Finished => {} // Just pass through
                     }
                     self.handle_possible_channel_count_change(next);
-                    next
+                    Ok(next)
                 }
             }
             ConverterType::StereoToMono => {
-                let next1 = self.inner.next_sample();
+                let next1 = self.inner.next_sample()?;
                 self.handle_possible_channel_count_change(next1);
                 let sample1 = match next1 {
                     NextSample::Sample(s) => s,
                     NextSample::MetadataChanged | NextSample::Paused | NextSample::Finished => {
-                        return next1;
+                        return Ok(next1);
                     }
                 };
-                let next2 = self.inner.next_sample();
+                let next2 = self.inner.next_sample()?;
                 self.handle_possible_channel_count_change(next2);
                 let sample2 = match next2 {
                     NextSample::Sample(s) => s,
                     NextSample::MetadataChanged | NextSample::Paused | NextSample::Finished => {
-                        return next2;
+                        return Ok(next2);
                     }
                 };
 
                 // Get the average of the two
                 let avg = ((sample1 as i32 + sample2 as i32) / 2) as i16;
-                NextSample::Sample(avg)
+                Ok(NextSample::Sample(avg))
             }
         }
     }

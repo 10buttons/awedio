@@ -93,9 +93,9 @@ where
             gcd(from_rate, self.to_rate)
         };
 
-        if !self.fill_frames() {
-            return self.init();
-        }
+        // These will get filled on the first or next call to next_sample
+        self.current_frame = Vec::new();
+        self.next_frame = Vec::new();
 
         self.to_rate_scaled = self.to_rate / gcd;
         self.from_rate_scaled = from_rate / gcd;
@@ -105,7 +105,7 @@ where
     }
 
     #[must_use]
-    fn fill_frames(&mut self) -> bool {
+    fn fill_frames(&mut self) -> Result<bool, crate::Error> {
         let from_rate = self.inner.sample_rate();
         let (first_samples, next_samples) = if from_rate == self.to_rate {
             (Vec::new(), Vec::new())
@@ -113,33 +113,38 @@ where
             let mut collect_frame = || match self.inner.next_frame() {
                 Ok(f) => Ok(f),
                 Err(special) => match special {
-                    NextSample::Sample(_) => unreachable!(),
-                    NextSample::MetadataChanged => Err(()),
-                    NextSample::Paused => {
+                    Ok(NextSample::Sample(_)) => unreachable!(),
+                    Ok(NextSample::MetadataChanged) => Err(None),
+                    Err(e) => Err(Some(e)),
+                    Ok(NextSample::Paused) => {
                         self.inner_paused = true;
                         Ok(Vec::new())
                     }
-                    NextSample::Finished => {
+                    Ok(NextSample::Finished) => {
                         self.inner_paused = false;
                         Ok(Vec::new())
                     }
                 },
             };
-            let Ok(first) = collect_frame() else {
-                return false;
+            let first = match collect_frame() {
+                Ok(o) => o,
+                Err(Some(e)) => return Err(e),
+                Err(None) => return Ok(false),
             };
-            let Ok(next) = collect_frame() else {
-                return false;
+            let next = match collect_frame() {
+                Ok(o) => o,
+                Err(Some(e)) => return Err(e),
+                Err(None) => return Ok(false),
             };
             (first, next)
         };
         self.current_frame = first_samples;
         self.next_frame = next_samples;
-        true
+        Ok(true)
     }
 
     #[must_use]
-    fn next_input_frame(&mut self) -> bool {
+    fn next_input_frame(&mut self) -> Result<bool, crate::Error> {
         self.current_frame_pos_in_chunk += 1;
 
         std::mem::swap(&mut self.current_frame, &mut self.next_frame);
@@ -147,15 +152,16 @@ where
         let specials = self.inner.append_next_frame_to(&mut self.next_frame);
         match specials {
             Ok(()) => (),
-            Err(NextSample::Sample(_)) => unreachable!(),
-            Err(NextSample::MetadataChanged) => {
-                return false;
+            Err(Ok(NextSample::Sample(_))) => unreachable!(),
+            Err(Ok(NextSample::MetadataChanged)) => {
+                return Ok(false);
             }
             // We handle not having any more samples left outside this function
-            Err(NextSample::Paused) => self.inner_paused = true,
-            Err(NextSample::Finished) => self.inner_paused = false,
+            Err(Ok(NextSample::Paused)) => self.inner_paused = true,
+            Err(Ok(NextSample::Finished)) => self.inner_paused = false,
+            Err(Err(e)) => return Err(e),
         }
-        true
+        Ok(true)
     }
 
     /// Unwrap the inner Sound.
@@ -179,24 +185,26 @@ where
         self.to_rate
     }
 
-    fn next_sample(&mut self) -> NextSample {
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
         if self.channel_count_changed {
             self.channel_count_changed = false;
-            return NextSample::MetadataChanged;
+            return Ok(NextSample::MetadataChanged);
         }
 
         // the algorithm below doesn't work if `self.from_rate_scaled ==
         // self.to_rate_scaled`
         if self.from_rate_scaled == self.to_rate_scaled {
             debug_assert_eq!(self.from_rate_scaled, 1);
-            let next = self.inner.next_sample();
+            let next = self.inner.next_sample()?;
             match next {
-                NextSample::Sample(_) | NextSample::Paused | NextSample::Finished => return next,
+                NextSample::Sample(_) | NextSample::Paused | NextSample::Finished => {
+                    return Ok(next)
+                }
                 NextSample::MetadataChanged => {
                     if self.inner.sample_rate() != self.to_rate {
                         self.init();
                     }
-                    return NextSample::MetadataChanged;
+                    return Ok(NextSample::MetadataChanged);
                 }
             }
         }
@@ -204,12 +212,12 @@ where
         // Short circuit if there are some samples waiting in the already processed
         // frame
         if let Some(sample) = self.output_frame.pop() {
-            return NextSample::Sample(sample);
+            return Ok(NextSample::Sample(sample));
         }
 
         // Coming back from being paused. Refill our frames.
         if self.current_frame.is_empty() {
-            if !self.fill_frames() {
+            if !self.fill_frames()? {
                 self.init();
                 return self.next_sample();
             }
@@ -222,12 +230,12 @@ where
             // If we jump to the next frame, we reset the whole state.
             self.next_output_frame_pos_in_chunk = 0;
 
-            if !self.next_input_frame() {
+            if !self.next_input_frame()? {
                 self.init();
                 return self.next_sample();
             }
             while self.current_frame_pos_in_chunk != self.from_rate_scaled {
-                if !self.next_input_frame() {
+                if !self.next_input_frame()? {
                     self.init();
                     return self.next_sample();
                 }
@@ -243,7 +251,7 @@ where
             // `self.current_frame_pos_in_chunk` until the latter variable
             // matches `req_left_sample`.
             while self.current_frame_pos_in_chunk != req_left_sample {
-                if !self.next_input_frame() {
+                if !self.next_input_frame()? {
                     self.init();
                     return self.next_sample();
                 }
@@ -260,7 +268,7 @@ where
         // If we are coming back from a pause where the next frame
         // was empty, lets fill both frames
         if self.current_frame.is_empty() && !self.next_frame.is_empty() {
-            if !self.next_input_frame() {
+            if !self.next_input_frame()? {
                 self.init();
                 return self.next_sample();
             }
@@ -286,7 +294,7 @@ where
         self.next_output_frame_pos_in_chunk += 1;
 
         if let Some(sample) = result {
-            NextSample::Sample(sample)
+            Ok(NextSample::Sample(sample))
         } else {
             // If there are no more samples for next_frame we still want to send
             // current_frame to the output
@@ -295,15 +303,15 @@ where
                 let r = NextSample::Sample(self.current_frame.pop().unwrap());
                 std::mem::swap(&mut self.output_frame, &mut self.current_frame);
                 debug_assert!(self.current_frame.is_empty());
-                r
+                Ok(r)
             } else {
                 // Set things up so we will attempt to pull for more frames again
                 self.current_frame_pos_in_chunk = 0;
                 self.next_output_frame_pos_in_chunk = 0;
                 if self.inner_paused {
-                    NextSample::Paused
+                    Ok(NextSample::Paused)
                 } else {
-                    NextSample::Finished
+                    Ok(NextSample::Finished)
                 }
             }
         }

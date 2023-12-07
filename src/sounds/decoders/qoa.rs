@@ -21,7 +21,10 @@ where
     pub fn new(data: R) -> Result<QoaDecoder<R>, DecodeError> {
         let mut raw_decoder = RawDecoder::new(data)?;
 
-        let QoaItem::FrameHeader(first_frame) = raw_decoder.next().ok_or(DecodeError::InvalidFrameHeader)?? else {
+        let QoaItem::FrameHeader(first_frame) = raw_decoder
+            .next()
+            .ok_or(DecodeError::InvalidFrameHeader)??
+        else {
             return Err(DecodeError::InvalidFrameHeader);
         };
         let sample_rate = first_frame.sample_rate;
@@ -52,31 +55,43 @@ where
         self.sample_rate
     }
 
-    fn next_sample(&mut self) -> NextSample {
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
         loop {
-            match self.raw_decoder.next() {
-                Some(Ok(QoaItem::Sample(s))) => return NextSample::Sample(s),
-                Some(Ok(QoaItem::FrameHeader(f))) => {
+            let Some(next_sample) = self.raw_decoder.next() else {
+                return Ok(NextSample::Finished);
+            };
+            let next_sample = next_sample?;
+
+            match next_sample {
+                QoaItem::Sample(s) => return Ok(NextSample::Sample(s)),
+                QoaItem::FrameHeader(f) => {
                     if f.num_channels as u16 != self.channel_count
                         || f.sample_rate != self.sample_rate
                     {
                         self.channel_count = f.num_channels.into();
                         self.sample_rate = f.sample_rate;
-                        return NextSample::MetadataChanged;
+                        return Ok(NextSample::MetadataChanged);
                     }
                     // No metadata change. Continue and read next sample
                     continue;
                 }
-                Some(Err(_)) => {
-                    // TODO report error somehow
-                    return NextSample::Finished;
-                }
-                None => return NextSample::Finished,
             }
         }
     }
 
     fn on_start_of_batch(&mut self) {}
+}
+
+impl From<DecodeError> for crate::Error {
+    fn from(value: DecodeError) -> Self {
+        match value {
+            DecodeError::IoError(e) => e.into(),
+            DecodeError::NotQoaFile
+            | DecodeError::NoSamples
+            | DecodeError::InvalidFrameHeader
+            | DecodeError::IncompatibleFrame => crate::Error::FormatError(Box::new(value)),
+        }
+    }
 }
 
 #[cfg(test)]

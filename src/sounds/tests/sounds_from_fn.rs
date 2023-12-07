@@ -14,10 +14,10 @@ fn basic() {
     let mut from_fn = SoundsFromFn::new(Box::new(generator));
     assert_eq!(from_fn.channel_count(), 2);
     assert_eq!(from_fn.sample_rate(), 1000);
-    assert_eq!(from_fn.next_sample(), NextSample::Sample(1));
-    assert_eq!(from_fn.next_sample(), NextSample::Sample(2));
-    assert_eq!(from_fn.next_sample(), NextSample::Sample(1));
-    assert_eq!(from_fn.next_sample(), NextSample::Sample(2));
+    assert_eq!(from_fn.next_sample().unwrap(), NextSample::Sample(1));
+    assert_eq!(from_fn.next_sample().unwrap(), NextSample::Sample(2));
+    assert_eq!(from_fn.next_sample().unwrap(), NextSample::Sample(1));
+    assert_eq!(from_fn.next_sample().unwrap(), NextSample::Sample(2));
 }
 
 #[test]
@@ -37,12 +37,12 @@ fn changing_metadata_and_finishing() {
     let mut from_fn = SoundsFromFn::new(Box::new(generator));
     assert_eq!(from_fn.channel_count(), 2);
     assert_eq!(from_fn.sample_rate(), 1001);
-    assert_eq!(from_fn.next_sample(), NextSample::Sample(1));
-    assert_eq!(from_fn.next_sample(), NextSample::Sample(2));
-    assert_eq!(from_fn.next_sample(), NextSample::MetadataChanged);
+    assert_eq!(from_fn.next_sample().unwrap(), NextSample::Sample(1));
+    assert_eq!(from_fn.next_sample().unwrap(), NextSample::Sample(2));
+    assert_eq!(from_fn.next_sample().unwrap(), NextSample::MetadataChanged);
     assert_eq!(from_fn.sample_rate(), 1002);
-    assert_eq!(from_fn.next_sample(), NextSample::Sample(1));
-    assert_eq!(from_fn.next_sample(), NextSample::Sample(2));
-    assert_eq!(from_fn.next_sample(), NextSample::Finished);
-    assert_eq!(from_fn.next_sample(), NextSample::Finished);
+    assert_eq!(from_fn.next_sample().unwrap(), NextSample::Sample(1));
+    assert_eq!(from_fn.next_sample().unwrap(), NextSample::Sample(2));
+    assert_eq!(from_fn.next_sample().unwrap(), NextSample::Finished);
+    assert_eq!(from_fn.next_sample().unwrap(), NextSample::Finished);
 }

@@ -3,7 +3,7 @@
 //! Note that other files under the tests/ folders are not submodules of this
 //! mod but are submodules of the modules they are testing.
 
-use crate::Sound;
+use crate::{NextSample, Sound};
 
 pub const DEFAULT_SAMPLE_RATE: u32 = 44100;
 pub const DEFAULT_CHANNEL_COUNT: u16 = 2;
@@ -36,12 +36,12 @@ impl Sound for ConstantValueSound {
         self.sample_rate
     }
 
-    fn next_sample(&mut self) -> crate::NextSample {
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
         if self.metadata_changed {
             self.metadata_changed = false;
-            return crate::NextSample::MetadataChanged;
+            return Ok(NextSample::MetadataChanged);
         }
-        crate::NextSample::Sample(self.value)
+        Ok(NextSample::Sample(self.value))
     }
 
     fn on_start_of_batch(&mut self) {}
@@ -88,14 +88,14 @@ impl Sound for Sawtooth {
         self.sample_rate
     }
 
-    fn next_sample(&mut self) -> crate::NextSample {
-        let to_return = crate::NextSample::Sample(self.value);
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
+        let to_return = NextSample::Sample(self.value);
         self.channel_idx += 1;
         if self.channel_idx == self.channel_count {
             self.channel_idx = 0;
             self.value = self.value.wrapping_add(1);
         }
-        to_return
+        Ok(to_return)
     }
 
     fn on_start_of_batch(&mut self) {}

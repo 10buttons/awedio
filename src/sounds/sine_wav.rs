@@ -41,14 +41,16 @@ impl crate::Sound for SineWav {
         self.sample_rate
     }
 
-    fn next_sample(&mut self) -> crate::NextSample {
+    fn next_sample(&mut self) -> Result<crate::NextSample, crate::Error> {
         let value = 2.0 * self.sample_num as f32 * self.freq * PI / self.sample_rate as f32;
         if self.sample_num == self.reset_num {
             self.sample_num = 0;
         } else {
             self.sample_num += 1;
         }
-        crate::NextSample::Sample((value.sin() * i16::MAX as f32) as i16)
+        Ok(crate::NextSample::Sample(
+            (value.sin() * i16::MAX as f32) as i16,
+        ))
     }
 
     fn on_start_of_batch(&mut self) {}

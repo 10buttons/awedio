@@ -69,22 +69,22 @@ where
         self.sample_rate
     }
 
-    fn next_sample(&mut self) -> crate::NextSample {
+    fn next_sample(&mut self) -> Result<crate::NextSample, crate::Error> {
         if self.metadata_changed {
             self.metadata_changed = false;
-            return crate::NextSample::MetadataChanged;
+            return Ok(crate::NextSample::MetadataChanged);
         }
         if self.output_buffer_next_out_idx >= self.output_buffer_data_len {
             match self.load_next_frame() {
                 Ok(true) => (),
-                // TODO report error somehow
-                Ok(false) | Err(_) => return crate::NextSample::Finished,
+                Ok(false) => return Ok(crate::NextSample::Finished),
+                Err(e) => return Err(e.into()),
             }
         }
         let to_return =
             crate::NextSample::Sample(self.output_buffer[self.output_buffer_next_out_idx]);
         self.output_buffer_next_out_idx += 1;
-        to_return
+        Ok(to_return)
     }
 
     fn on_start_of_batch(&mut self) {}

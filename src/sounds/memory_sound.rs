@@ -36,24 +36,29 @@ impl MemorySound {
     /// Create a MemorySound be consuming another Sound and storing the samples
     /// until it returns `Finished` or `Paused`.
     ///
+    /// If an Error is encountered it is returned and any already obtained samples
+    /// are lost.
+    ///
     /// It is not currently supported for the the originating sample to change
     /// its metadata (i.e. channel count or sample rate). If it does an
-    /// UnsupportedMetadataChangeError error is returned.
-    pub fn from_sound(mut orig: impl Sound) -> Result<Self, UnsupportedMetadataChangeError> {
+    /// IoError of ErrorKind::Other with a UnsupportedMetadataChangeError is returned.
+    pub fn from_sound(mut orig: impl Sound) -> Result<Self, crate::Error> {
         let channel_count = orig.channel_count();
         let sample_rate = orig.sample_rate();
 
         let mut samples = Vec::new();
 
         loop {
-            let sample = orig.next_sample();
+            let sample = orig.next_sample()?;
             match sample {
                 crate::NextSample::Sample(s) => {
                     samples.push(s);
                 }
                 crate::NextSample::MetadataChanged => {
                     if orig.channel_count() != channel_count || orig.sample_rate() != sample_rate {
-                        return Err(UnsupportedMetadataChangeError {});
+                        return Err(crate::Error::IoError(std::io::Error::other(
+                            UnsupportedMetadataChangeError {},
+                        )));
                     }
                     // Sometimes we see a MetadataChanged from a sound just to
                     // ensure that channels stay in sync. Lets ensure that here
@@ -115,16 +120,16 @@ impl Sound for MemorySound {
         self.sample_rate
     }
 
-    fn next_sample(&mut self) -> NextSample {
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
         if let Some(sample) = self.samples.get(self.next_sample) {
             self.next_sample += 1;
-            NextSample::Sample(*sample)
+            Ok(NextSample::Sample(*sample))
         } else {
             if self.should_loop && !self.samples.is_empty() {
                 self.next_sample = 0;
                 self.next_sample()
             } else {
-                NextSample::Finished
+                Ok(NextSample::Finished)
             }
         }
     }

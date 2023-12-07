@@ -5,8 +5,10 @@ type SoundGenerator = Box<dyn FnMut() -> Option<Box<dyn Sound>> + Send>;
 /// Play sounds produced by a function returning sounds one after the other.
 ///
 /// The generator function is called after each previously produced sound has
-/// returned finished until None is returned after which `SoundsFromFn` returns
-/// Finished.
+/// returned finished. After `SoundsFromFn` returns None
+/// this sound returns Finished. If an Error is returned from next_sound
+/// that sound is dropped and the Error is returned. If next_sound is called
+/// again SoundsFromFn is called again.
 ///
 /// This can be used to create sounds that loop forever without storing all
 /// samples in memory.
@@ -72,30 +74,38 @@ impl Sound for SoundsFromFn {
         }
     }
 
-    fn next_sample(&mut self) -> NextSample {
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
         loop {
             let Some(current) = &mut self.current else {
-                return NextSample::Finished;
+                return Ok(NextSample::Finished);
             };
             let sample = current.next_sample();
+            let sample = match sample {
+                Ok(s) => s,
+                Err(e) => {
+                    self.current = (self.generator)();
+                    self.update_metadata();
+                    return Err(e);
+                }
+            };
             match sample {
                 NextSample::MetadataChanged => {
                     self.update_metadata();
-                    return sample;
+                    return Ok(sample);
                 }
-                NextSample::Sample(_) | NextSample::Paused => return sample,
+                NextSample::Sample(_) | NextSample::Paused => return Ok(sample),
                 NextSample::Finished => {
                     let old_channel_count = self.current_channel_count;
                     let old_sample_rate = self.current_sample_rate;
                     self.current = (self.generator)();
                     self.update_metadata();
                     if self.current.is_none() {
-                        return NextSample::Finished;
+                        return Ok(NextSample::Finished);
                     }
                     if old_sample_rate != self.sample_rate()
                         || old_channel_count != self.channel_count()
                     {
-                        return NextSample::MetadataChanged;
+                        return Ok(NextSample::MetadataChanged);
                     }
                 }
             }

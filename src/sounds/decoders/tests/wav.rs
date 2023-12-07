@@ -8,22 +8,22 @@ fn samples_of_test_file() -> std::io::Result<()> {
     let mut decoder = WavDecoder::new(std::io::Cursor::new(SINE_WAVE_FILE)).unwrap();
     assert_eq!(decoder.sample_rate(), 44100);
     assert_eq!(decoder.channel_count(), 1);
-    assert_eq!(decoder.next_sample(), NextSample::Sample(0)); // 1
-    assert_eq!(decoder.next_sample(), NextSample::Sample(4647)); // 2
-    assert_eq!(decoder.next_sample(), NextSample::Sample(9201)); // 3
-    assert_eq!(decoder.next_sample(), NextSample::Sample(13567)); // 4
-    assert_eq!(decoder.next_sample(), NextSample::Sample(17659)); // 5
-    assert_eq!(decoder.next_sample(), NextSample::Sample(21393)); // 6
-    assert_eq!(decoder.next_sample(), NextSample::Sample(24693)); // 7
-    assert_eq!(decoder.next_sample(), NextSample::Sample(27493)); // 8
-    assert_eq!(decoder.next_sample(), NextSample::Sample(29736)); // 9
-    assert_eq!(decoder.next_sample(), NextSample::Sample(31377)); // 10
-    assert_eq!(decoder.next_sample(), NextSample::Sample(32381)); // 11
-    assert_eq!(decoder.next_sample(), NextSample::Sample(32729)); // 12
-    assert_eq!(decoder.next_sample(), NextSample::Sample(32414)); // 13
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Sample(0)); // 1
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Sample(4647)); // 2
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Sample(9201)); // 3
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Sample(13567)); // 4
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Sample(17659)); // 5
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Sample(21393)); // 6
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Sample(24693)); // 7
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Sample(27493)); // 8
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Sample(29736)); // 9
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Sample(31377)); // 10
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Sample(32381)); // 11
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Sample(32729)); // 12
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Sample(32414)); // 13
     for _i in 0..4398 {
         // println!("i: {_i}");
-        let sample = decoder.next_sample();
+        let sample = decoder.next_sample().unwrap();
         match sample {
             NextSample::Sample(_) => {}
             NextSample::MetadataChanged => unreachable!(),
@@ -31,7 +31,7 @@ fn samples_of_test_file() -> std::io::Result<()> {
             NextSample::Finished => unreachable!(),
         }
     }
-    assert_eq!(decoder.next_sample(), NextSample::Finished);
-    assert_eq!(decoder.next_sample(), NextSample::Finished);
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Finished);
+    assert_eq!(decoder.next_sample().unwrap(), NextSample::Finished);
     Ok(())
 }

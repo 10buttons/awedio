@@ -8,7 +8,7 @@ use crate::sounds::{
         AdjustableSpeed, AdjustableVolume, Controllable, Controller, FinishAfter, Pausable,
         SetPaused,
     },
-    MemorySound, UnsupportedMetadataChangeError,
+    MemorySound,
 };
 
 /// A provider of audio samples.
@@ -37,10 +37,12 @@ pub trait Sound: Send {
     /// returned, channel_count() and sample_rate() may return different values
     /// without MetadataChanged being returned.
     ///
-    /// There is currently no way to explicitly signal an error. Implementors
-    /// can choose to skip over bad data or return Finished if an error is
-    /// encountered.
-    fn next_sample(&mut self) -> NextSample;
+    /// If an error is returned it is not specified what will happen if
+    /// next_sample is called again. Individual implementations can specify
+    /// which errors are recoverable if any. Most consumers will either pass the
+    /// error up or log the error and stop playing the sound (e.g. `SoundMixer`
+    /// and `SoundList`).
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error>;
 
     /// Called whenever a new batch of audio samples is requested by the
     /// backend.
@@ -55,11 +57,12 @@ pub trait Sound: Send {
     /// at the start of a frame (i.e. the first channel is the next to be
     /// returned from next_sample).
     ///
-    /// If `Paused`, `Finished`, or `MetadataChanged` are encountered while
-    /// collecting samples, an Err(NextSample) of that variant will be
-    /// returned and any previously collected samples are lost.
-    /// Err(NextSample::Sample) will never be returned.
-    fn next_frame(&mut self) -> Result<Vec<i16>, NextSample> {
+    /// If an Error, `Paused`, `Finished`, or `MetadataChanged` are encountered
+    /// while collecting samples, an Err(Ok(NextSample)) of that variant
+    /// will be returned and any previously collected samples are lost.
+    /// Err(Ok(NextSample::Sample)) will never be returned. If an error is
+    /// encountered Err(Err(error::Error)) is returned.
+    fn next_frame(&mut self) -> Result<Vec<i16>, Result<NextSample, crate::Error>> {
         let mut samples = Vec::with_capacity(self.channel_count() as usize);
         self.append_next_frame_to(&mut samples)?;
         Ok(samples)
@@ -68,14 +71,18 @@ pub trait Sound: Send {
     /// Same as `next_frame` but samples are appended into an existing Vec.
     ///
     /// Any existing data is left unmodified.
-    fn append_next_frame_to(&mut self, samples: &mut Vec<i16>) -> Result<(), NextSample> {
+    fn append_next_frame_to(
+        &mut self,
+        samples: &mut Vec<i16>,
+    ) -> Result<(), Result<NextSample, crate::Error>> {
         for _ in 0..self.channel_count() {
             let next = self.next_sample();
             match next {
-                NextSample::Sample(s) => samples.push(s),
-                NextSample::MetadataChanged | NextSample::Paused | NextSample::Finished => {
-                    return Err(next)
-                }
+                Ok(NextSample::Sample(s)) => samples.push(s),
+                Ok(NextSample::MetadataChanged)
+                | Ok(NextSample::Paused)
+                | Ok(NextSample::Finished)
+                | Err(_) => return Err(next),
             }
         }
         Ok(())
@@ -83,7 +90,7 @@ pub trait Sound: Send {
 
     /// Read the entire sound into memory. MemorySound can be cloned for
     /// efficient reuse. See [MemorySound::from_sound].
-    fn into_memory_sound(self) -> Result<MemorySound, UnsupportedMetadataChangeError>
+    fn into_memory_sound(self) -> Result<MemorySound, crate::Error>
     where
         Self: Sized,
     {
@@ -94,7 +101,7 @@ pub trait Sound: Send {
     ///
     /// If you do not want to read the entire sound into memory see
     /// [SoundsFromFn][crate::sounds::SoundsFromFn] as an alternative.
-    fn loop_from_memory(self) -> Result<MemorySound, UnsupportedMetadataChangeError>
+    fn loop_from_memory(self) -> Result<MemorySound, crate::Error>
     where
         Self: Sized,
     {
@@ -244,7 +251,7 @@ impl Sound for Box<dyn Sound> {
         self.deref().sample_rate()
     }
 
-    fn next_sample(&mut self) -> NextSample {
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
         self.deref_mut().next_sample()
     }
 }

@@ -9,6 +9,9 @@ type MixedSound = SampleRateConverter<ChannelCountConverter<Box<dyn Sound>>>;
 /// The [Manager][crate::manager::Manager] contains a SoundMixer so you might
 /// not need to crate one yourself but instead add multiple sounds on the
 /// Manager.
+///
+/// If a Sound returns an Error from next_sample, the error is logged and the
+/// Sound is dropped but other sounds keep playing.
 pub struct SoundMixer {
     sounds: Vec<MixedSound>,
     paused_sounds: Vec<MixedSound>,
@@ -78,11 +81,12 @@ impl Sound for SoundMixer {
         }
     }
 
-    fn next_sample(&mut self) -> crate::sound::NextSample {
+    /// Guaranteed to not return an Error.
+    fn next_sample(&mut self) -> Result<crate::sound::NextSample, crate::Error> {
         if self.metadata_changed {
             assert!(self.next_output_channel_idx == 0);
             self.metadata_changed = false;
-            return crate::sound::NextSample::MetadataChanged;
+            return Ok(NextSample::MetadataChanged);
         }
 
         let mut output: i16 = 0;
@@ -92,11 +96,11 @@ impl Sound for SoundMixer {
         for (idx, sound) in self.sounds.iter_mut().enumerate() {
             loop {
                 match sound.next_sample() {
-                    NextSample::Sample(s) => {
+                    Ok(NextSample::Sample(s)) => {
                         output = output.saturating_add(s);
                         break;
                     }
-                    NextSample::MetadataChanged => {
+                    Ok(NextSample::MetadataChanged) => {
                         // We know that the channel_count and sample_rate haven't changed because
                         // we have wrapped the sound in converters. It is pausable that the
                         // MetadataChanged implies we need to start over at the first channel.
@@ -111,11 +115,17 @@ impl Sound for SoundMixer {
                             break;
                         }
                     }
-                    NextSample::Paused => {
+                    Ok(NextSample::Paused) => {
                         to_remove.push((idx, true));
                         break;
                     }
-                    NextSample::Finished => {
+                    Ok(NextSample::Finished) => {
+                        to_remove.push((idx, false));
+                        break;
+                    }
+                    Err(e) => {
+                        // TODO probably want to let applications subscribe to be notified of these errors
+                        log::error!("dropping sound in SoundMixer which returned error: {}", e);
                         to_remove.push((idx, false));
                         break;
                     }
@@ -143,13 +153,13 @@ impl Sound for SoundMixer {
             // is changed to a Paused by the wrapper.
             (true, true) => {
                 self.next_output_channel_idx = 0;
-                NextSample::Finished
+                Ok(NextSample::Finished)
             }
             (true, false) => {
                 self.next_output_channel_idx = 0;
-                NextSample::Finished
+                Ok(NextSample::Finished)
             }
-            (false, _) => NextSample::Sample(output),
+            (false, _) => Ok(NextSample::Sample(output)),
         }
     }
 }

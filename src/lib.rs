@@ -6,10 +6,12 @@ pub mod backends;
 pub mod manager;
 pub mod sounds;
 
+mod error;
 mod sound;
 #[cfg(test)]
 mod tests;
 
+pub use error::Error;
 pub use sound::NextSample;
 pub use sound::Sound;
 

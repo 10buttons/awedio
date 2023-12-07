@@ -69,10 +69,10 @@ where
         u32::max(1, new_rate)
     }
 
-    fn next_sample(&mut self) -> crate::NextSample {
+    fn next_sample(&mut self) -> Result<crate::NextSample, crate::Error> {
         if self.speed_changed {
             self.speed_changed = false;
-            return crate::NextSample::MetadataChanged;
+            return Ok(crate::NextSample::MetadataChanged);
         }
         self.inner.next_sample()
     }

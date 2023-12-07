@@ -94,7 +94,7 @@ impl CpalBackend {
     {
         let (manager, mut renderer) = Manager::new();
         renderer.set_output_channel_count_and_sample_rate(self.channel_count, self.sample_rate);
-        let crate::NextSample::MetadataChanged = renderer.next_sample() else {
+        let Ok(crate::NextSample::MetadataChanged) = renderer.next_sample() else {
             panic!("expected MetadataChanged event")
         };
         let channel_count = self.channel_count;
@@ -102,15 +102,20 @@ impl CpalBackend {
             assert!(buffer.len() % channel_count as usize == 0);
             renderer.on_start_of_batch();
 
-            buffer.fill_with(|| match renderer.next_sample() {
-                crate::NextSample::Sample(s) => s,
-                crate::NextSample::MetadataChanged => {
-                    unreachable!("we never change metadata mid-batch")
+            buffer.fill_with(|| {
+                let sample = renderer
+                    .next_sample()
+                    .expect("renderer should never return an Error");
+                match sample {
+                    crate::NextSample::Sample(s) => s,
+                    crate::NextSample::MetadataChanged => {
+                        unreachable!("we never change metadata mid-batch")
+                    }
+                    // TODO implement pausing
+                    crate::NextSample::Paused => 0,
+                    // TODO implement finishing
+                    crate::NextSample::Finished => 0,
                 }
-                // TODO implement pausing
-                crate::NextSample::Paused => 0,
-                // TODO implement finishing
-                crate::NextSample::Finished => 0,
             });
         };
 

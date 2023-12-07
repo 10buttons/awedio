@@ -54,7 +54,7 @@ impl Sound for Renderer {
     /// returned the backend may choose to pause itself or play silence (e.g.
     /// `.next_sample().unwrap_or(0)`). `Finished` will be returned if no sounds
     /// are playing and the Manager of the Renderer has been dropped.
-    fn next_sample(&mut self) -> NextSample {
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
         self.mixer.next_sample()
     }
 

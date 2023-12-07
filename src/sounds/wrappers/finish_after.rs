@@ -62,11 +62,11 @@ where
         self.inner.sample_rate()
     }
 
-    fn next_sample(&mut self) -> crate::NextSample {
+    fn next_sample(&mut self) -> Result<crate::NextSample, crate::Error> {
         if self.samples_remaining == 0 {
-            return crate::NextSample::Finished;
+            return Ok(crate::NextSample::Finished);
         }
-        let next = self.inner.next_sample();
+        let next = self.inner.next_sample()?;
         match next {
             crate::NextSample::Sample(_) => {
                 self.samples_remaining -= 1;
@@ -94,7 +94,7 @@ where
             crate::NextSample::Paused => (),
             crate::NextSample::Finished => (),
         }
-        next
+        Ok(next)
     }
 
     fn on_start_of_batch(&mut self) {

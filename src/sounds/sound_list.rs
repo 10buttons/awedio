@@ -6,6 +6,10 @@ use crate::Sound;
 ///
 /// Only after a Sound has returned `NextSample::Finished` will the next Sound
 /// start playing.
+///
+/// If an Error is returned from a Sound it is dropped and the error is
+/// propogated to the caller. Calling next_sound again would continue
+/// with the next Sound in the list.
 pub struct SoundList {
     sounds: Vec<Box<dyn Sound>>,
     was_empty: bool,
@@ -72,17 +76,23 @@ impl Sound for SoundList {
         }
     }
 
-    fn next_sample(&mut self) -> NextSample {
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
         let Some(next_sound) = self.sounds.first_mut() else {
-            return NextSample::Finished;
+            return Ok(NextSample::Finished);
         };
         if self.was_empty {
             self.was_empty = false;
-            return NextSample::MetadataChanged;
+            return Ok(NextSample::MetadataChanged);
         }
-        let next_sample = next_sound.next_sample();
+        let next_sample = match next_sound.next_sample() {
+            Ok(s) => s,
+            Err(e) => {
+                self.sounds.remove(0);
+                return Err(e);
+            }
+        };
 
-        match next_sample {
+        let ret = match next_sample {
             NextSample::Sample(_) | NextSample::MetadataChanged | NextSample::Paused => next_sample,
             NextSample::Finished => {
                 self.sounds.remove(0);
@@ -94,7 +104,8 @@ impl Sound for SoundList {
                     NextSample::MetadataChanged
                 }
             }
-        }
+        };
+        Ok(ret)
     }
 }
 

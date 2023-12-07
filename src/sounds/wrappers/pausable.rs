@@ -55,9 +55,9 @@ where
         self.inner.sample_rate()
     }
 
-    fn next_sample(&mut self) -> crate::NextSample {
+    fn next_sample(&mut self) -> Result<crate::NextSample, crate::Error> {
         if self.paused {
-            return crate::NextSample::Paused;
+            return Ok(crate::NextSample::Paused);
         }
         self.inner.next_sample()
     }

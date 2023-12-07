@@ -41,8 +41,8 @@ where
         self.inner.sample_rate()
     }
 
-    fn next_sample(&mut self) -> NextSample {
-        let next = self.inner.next_sample();
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
+        let next = self.inner.next_sample()?;
         if let NextSample::Finished = next {
             if let Some(sender) = self.sender.take() {
                 // If the consumer dropped their receiver because they don't need it anymore its
@@ -50,7 +50,7 @@ where
                 let _res = sender.send(());
             }
         }
-        next
+        Ok(next)
     }
 
     fn on_start_of_batch(&mut self) {

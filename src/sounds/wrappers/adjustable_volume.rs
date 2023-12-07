@@ -68,9 +68,9 @@ where
         self.inner.sample_rate()
     }
 
-    fn next_sample(&mut self) -> crate::NextSample {
-        let next = self.inner.next_sample();
-        match next {
+    fn next_sample(&mut self) -> Result<crate::NextSample, crate::Error> {
+        let next = self.inner.next_sample()?;
+        Ok(match next {
             crate::NextSample::Sample(s) => {
                 let adjusted = (s as f32 * self.volume_adjustment) as i16;
                 crate::NextSample::Sample(adjusted)
@@ -78,7 +78,7 @@ where
             crate::NextSample::MetadataChanged
             | crate::NextSample::Paused
             | crate::NextSample::Finished => next,
-        }
+        })
     }
 
     fn on_start_of_batch(&mut self) {

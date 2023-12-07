@@ -54,38 +54,38 @@ where
         self.sample_rate
     }
 
-    fn next_sample(&mut self) -> NextSample {
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
         let spec = self.reader.spec();
-        // TODO The unwrap_or calls below are hiding errors.
-        let sample_or_none = match (spec.sample_format, spec.bits_per_sample) {
+        let maybe_sample = match (spec.sample_format, spec.bits_per_sample) {
             (SampleFormat::Float, 32) => self
                 .reader
                 .samples()
                 .next()
-                .map(|value| f32_to_i16(value.unwrap_or(0.0))),
+                .map(|value| value.map(f32_to_i16)),
             (SampleFormat::Int, 8) => self
                 .reader
                 .samples()
                 .next()
-                .map(|value| i8_to_i16(value.unwrap_or(0))),
-            (SampleFormat::Int, 16) => self.reader.samples().next().map(|value| value.unwrap_or(0)),
+                .map(|value| value.map(i8_to_i16)),
+            (SampleFormat::Int, 16) => self.reader.samples().next(),
             (SampleFormat::Int, 24) => self
                 .reader
                 .samples()
                 .next()
-                .map(|value| i24_to_i16(value.unwrap_or(0))),
+                .map(|value| value.map(i24_to_i16)),
             (SampleFormat::Int, 32) => self
                 .reader
                 .samples()
                 .next()
-                .map(|value| i32_to_i16(value.unwrap_or(0))),
+                .map(|value| value.map(i32_to_i16)),
             (sample_format, bits_per_sample) => {
                 unimplemented!("wav spec: {:?}, {}", sample_format, bits_per_sample)
             }
         };
-        match sample_or_none {
-            Some(sample) => NextSample::Sample(sample),
-            None => NextSample::Finished,
+        match maybe_sample {
+            Some(Ok(sample)) => Ok(NextSample::Sample(sample)),
+            Some(Err(e)) => Err(e.into()),
+            None => Ok(NextSample::Finished),
         }
     }
 
@@ -109,6 +109,19 @@ fn i24_to_i16(i: i32) -> i16 {
 // Lossy
 fn i32_to_i16(i: i32) -> i16 {
     (i >> 16) as i16
+}
+
+impl From<hound::Error> for crate::Error {
+    fn from(value: hound::Error) -> Self {
+        match value {
+            hound::Error::IoError(e) => e.into(),
+            hound::Error::FormatError(_)
+            | hound::Error::TooWide
+            | hound::Error::UnfinishedSample
+            | hound::Error::Unsupported
+            | hound::Error::InvalidSampleFormat => crate::Error::FormatError(Box::new(value)),
+        }
+    }
 }
 
 #[cfg(test)]

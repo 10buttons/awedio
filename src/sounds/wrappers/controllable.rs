@@ -51,12 +51,12 @@ where
         self.inner.sample_rate()
     }
 
-    fn next_sample(&mut self) -> crate::NextSample {
-        let next = self.inner.next_sample();
+    fn next_sample(&mut self) -> Result<crate::NextSample, crate::Error> {
+        let next = self.inner.next_sample()?;
         match next {
             crate::NextSample::Sample(_)
             | crate::NextSample::MetadataChanged
-            | crate::NextSample::Paused => next,
+            | crate::NextSample::Paused => Ok(next),
             // Since this is controllable we might add another sound later.
             // Ideally we would do this only if the inner sound can have sounds
             // added to it but I don't think we can branch on S: AddSound here.
@@ -64,9 +64,9 @@ where
             // a reason why it is necessary.
             crate::NextSample::Finished => {
                 if self.finished {
-                    crate::NextSample::Finished
+                    Ok(crate::NextSample::Finished)
                 } else {
-                    crate::NextSample::Paused
+                    Ok(crate::NextSample::Paused)
                 }
             }
         }

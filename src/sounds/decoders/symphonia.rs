@@ -1,3 +1,4 @@
+use crate::NextSample;
 use crate::Sound;
 use symphonia::core::audio::{AudioBuffer, AudioBufferRef, Channels, Signal};
 use symphonia::core::codecs::{Decoder, DecoderOptions, CODEC_TYPE_NULL};
@@ -82,7 +83,7 @@ impl Sound for SymphoniaDecoder {
         self.sample_rate
     }
 
-    fn next_sample(&mut self) -> crate::NextSample {
+    fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
         if self.next_channel_idx >= self.channels.count().try_into().unwrap() {
             self.next_channel_idx = 0;
             self.next_sample_idx += 1;
@@ -90,22 +91,23 @@ impl Sound for SymphoniaDecoder {
         let mut buf_ref = self.decoder.last_decoded();
         if self.next_sample_idx >= buf_ref.frames() {
             match self.decode_next_packet() {
-                Ok(true) => return crate::NextSample::MetadataChanged,
+                Ok(true) => return Ok(NextSample::MetadataChanged),
                 Ok(false) => (),
                 Err(Error::IoError(err))
                     if err.kind() == std::io::ErrorKind::UnexpectedEof
                         && err.to_string() == "end of stream" =>
                 {
-                    return crate::NextSample::Finished
+                    // According to Symphonia this is the only way to detect an end of stream
+                    return Ok(NextSample::Finished);
                 }
                 // TODO: Handle errors better when awedio allows returning errors.
-                Err(e) => todo!("{:?}", e),
+                Err(e) => return Err(e.into()),
             };
             buf_ref = self.decoder.last_decoded();
         }
         let sample = extract_sample_from_ref(&buf_ref, self.next_channel_idx, self.next_sample_idx);
         self.next_channel_idx += 1;
-        crate::NextSample::Sample(sample)
+        Ok(NextSample::Sample(sample))
     }
 
     fn on_start_of_batch(&mut self) {}
@@ -168,6 +170,19 @@ where
     i16: FromSample<S>,
 {
     FromSample::from_sample(buffer.chan(channel_idx as usize)[sample_idx])
+}
+
+impl From<Error> for crate::Error {
+    fn from(value: Error) -> Self {
+        match value {
+            Error::IoError(e) => e.into(),
+            Error::DecodeError(_)
+            | Error::SeekError(_)
+            | Error::Unsupported(_)
+            | Error::LimitError(_)
+            | Error::ResetRequired => crate::Error::FormatError(Box::new(value)),
+        }
+    }
 }
 
 #[cfg(test)]
