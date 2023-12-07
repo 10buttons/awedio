@@ -3,7 +3,7 @@
 A low-overhead and adaptable audio playback library for Rust.
 
 By default supports playing mp3, wav, flac, aac, ogg, qoa and all other formats
-supported by [symphonia](https://crates.io/crates/symphonia).
+supported by [Symphonia](https://crates.io/crates/symphonia).
 
 ## Examples
 
@@ -34,8 +34,7 @@ controller.set_paused(true);
 
 ## Design Goals
 
-- Usable in low resource environments such as the esp32 microcontroller.
-  Currently does require std.
+- Modular design. Easy to add new backends, wrappers and decoders.
 - Very low overhead. For example, a Wav file with i16 samples with the same
   same sample rate as the output device will have samples sent to the backend
   unchanged.
@@ -43,6 +42,8 @@ controller.set_paused(true);
   pausability, volume adjustment, or controlling a sound after playback has
   started are all added to a Sound only as needed. This is done by wrapping
   types that implement [`Sound`] similar to `Iterator` in the standard library.
+- Usable in low resource environments such as the esp32 microcontroller.
+  Currently does require std.
 - Samples are i16 for simplicity at least for now (if this prevents you from
   using this library please let me know your use case)
 
@@ -68,7 +69,7 @@ Backends are implemented by pulling samples from the [Renderer].
   [tokio-sync](https://docs.rs/tokio/latest/tokio/sync/index.html)
 - `cpal`: Enable the [cpal] backend.
 - `symphonia-all`: Enable all formats and codecs supported by
-  [symphonia](https://crates.io/crates/symphonia)
+  [Symphonia](https://crates.io/crates/symphonia)
 - `symphonia-`: All feature flags of symphonia are re-exported with the `symphonia-` prefix.
 - `hound-wav`: Enable wav decoding using [Hound](https://crates.io/crates/hound)
 - `rmp3-mp3`: Enable mp3 decoding using [rmp3](https://crates.io/crates/rmp3)
@@ -92,20 +93,28 @@ a reference for this library:
 
 - [Rodio](https://docs.rs/rodio/)
   - Very popular crate for audio playback with Rust.
-  - Tightly coupled to cpal.
+  - Tightly coupled to cpal. Awedio allows for easy integration with cpal or
+    other backends.
   - Has a [Sink](https://docs.rs/rodio/latest/rodio/#sink) which is similar to
     `SoundList::new().pausable().with_adjustable_volume().controllable()`...
-  - mp3 libraries did not work for me on embedded.
-  - Default mixer converts everything to an f32.
-  - Uses the standard Iterator trait for its Source/Sound.
+  - Mixer converts everything to an f32. Awedio uses i16 consistently.
+  - Sources have the concept of a frame length where metadata should not change
+    but this does not work well for some wrappers such as Speed.
+  - Uses the standard Iterator trait for its Source. Awedio's Sound is its own
+    enum that handles Metadata Changes, Pausing and Finishing sounds.
+  - Does not have a way to propogate errors through Sources. Awedio's sound
+    returns a result so errors can be explicitly handled if desired.
 - [Kira](https://docs.rs/kira/)
   - Has very nice API for tweening and effects.
   - [Sound](https://docs.rs/kira/latest/kira/sound/trait.Sound.html) trait
     requires a left/right track instead of supporting 1 or N tracks.
-  - Samples are all f32.
+  - Samples are all f32. Thus frames are always 8 bytes. A frame for a mono
+    Sound in awedio is only 2 bytes.
   - Uses symphonia for audio format parsing and has several internal buffers
-    requiring more memory.
-  - All samples are resampled based on the timestamp and sample rate.
+    requiring more memory. Awedio optionally uses symphonia or other decoding
+    crates with less buffering required.
+  - All samples are resampled based on the timestamp and sample rate. Awedio
+    only resamples if the source and output rates do not match.
 
 ## License
 

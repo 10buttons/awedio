@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- docs: update README
 - feat!: change Sound::next_sample to return Result
 - feat!: add Symphonia decoder which supports many formats and codecs
   Note that feature flags were renamed to remove ambiguity.
