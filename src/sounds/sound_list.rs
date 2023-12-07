@@ -8,7 +8,7 @@ use crate::Sound;
 /// start playing.
 ///
 /// If an Error is returned from a Sound it is dropped and the error is
-/// propogated to the caller. Calling next_sound again would continue
+/// propagated to the caller. Calling next_sound again would continue
 /// with the next Sound in the list.
 pub struct SoundList {
     sounds: Vec<Box<dyn Sound>>,

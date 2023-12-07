@@ -13,9 +13,7 @@ use std::{fs::File, io::BufReader};
 /// on the renderer thread as reading from a file could block the renderer.
 /// Consider convert the sound to a memory_sound which is stored entirely in RAM
 /// (and can be cloned cheaply).
-pub fn open_file<P: AsRef<std::path::Path>>(
-    path: P,
-) -> Result<Box<dyn Sound>, Box<dyn std::error::Error>> {
+pub fn open_file<P: AsRef<std::path::Path>>(path: P) -> Result<Box<dyn Sound>, crate::Error> {
     let file = File::open(path.as_ref())?;
     let reader = BufReader::new(file);
     open_file_with_reader(path.as_ref(), reader)
@@ -25,7 +23,7 @@ pub fn open_file<P: AsRef<std::path::Path>>(
 pub fn open_file_with_buffer_capacity<P: AsRef<std::path::Path>>(
     path: P,
     buffer_capacity: usize,
-) -> Result<Box<dyn Sound>, Box<dyn std::error::Error>> {
+) -> Result<Box<dyn Sound>, crate::Error> {
     let file = File::open(path.as_ref())?;
     let reader = BufReader::with_capacity(buffer_capacity, file);
     open_file_with_reader(path.as_ref(), reader)
@@ -34,7 +32,7 @@ pub fn open_file_with_buffer_capacity<P: AsRef<std::path::Path>>(
 fn open_file_with_reader(
     path: &std::path::Path,
     reader: BufReader<File>,
-) -> Result<Box<dyn Sound>, Box<dyn std::error::Error>> {
+) -> Result<Box<dyn Sound>, crate::Error> {
     let extension = path
         .extension()
         .unwrap_or_default()
@@ -47,7 +45,7 @@ fn open_file_with_reader(
         #[cfg(feature = "qoa")]
         "qoa" => Box::new(super::decoders::QoaDecoder::new(reader)?),
         #[cfg(feature = "hound-wav")]
-        "wav" => Box::new(super::decoders::WavDecoder::new(reader).map_err(Box::new)?),
+        "wav" => Box::new(super::decoders::WavDecoder::new(reader)?),
         #[cfg(feature = "symphonia")]
         _ => Box::new(super::decoders::SymphoniaDecoder::new(
             Box::new(reader.into_inner()),

@@ -36,12 +36,13 @@ impl MemorySound {
     /// Create a MemorySound be consuming another Sound and storing the samples
     /// until it returns `Finished` or `Paused`.
     ///
-    /// If an Error is encountered it is returned and any already obtained samples
-    /// are lost.
+    /// If an Error is encountered it is returned and any already obtained
+    /// samples are lost.
     ///
     /// It is not currently supported for the the originating sample to change
     /// its metadata (i.e. channel count or sample rate). If it does an
-    /// IoError of ErrorKind::Other with a UnsupportedMetadataChangeError is returned.
+    /// IoError of ErrorKind::Other with a UnsupportedMetadataChangeError is
+    /// returned.
     pub fn from_sound(mut orig: impl Sound) -> Result<Self, crate::Error> {
         let channel_count = orig.channel_count();
         let sample_rate = orig.sample_rate();
@@ -67,10 +68,8 @@ impl MemorySound {
                     let channel_idx = samples.len() % channel_count as usize;
                     if channel_idx != 0 {
                         let outputs_to_stay_in_sync = channel_count as usize - channel_idx;
-                        for _ in 0..outputs_to_stay_in_sync {
-                            // This should be rare so lets just output 0 for the single sample.
-                            samples.push(0);
-                        }
+                        // This should be rare so lets just output 0 for the filler samples.
+                        samples.extend(std::iter::repeat(0).take(outputs_to_stay_in_sync));
                     }
                 }
                 crate::NextSample::Paused | crate::NextSample::Finished => break,
@@ -124,13 +123,11 @@ impl Sound for MemorySound {
         if let Some(sample) = self.samples.get(self.next_sample) {
             self.next_sample += 1;
             Ok(NextSample::Sample(*sample))
+        } else if self.should_loop && !self.samples.is_empty() {
+            self.next_sample = 0;
+            self.next_sample()
         } else {
-            if self.should_loop && !self.samples.is_empty() {
-                self.next_sample = 0;
-                self.next_sample()
-            } else {
-                Ok(NextSample::Finished)
-            }
+            Ok(NextSample::Finished)
         }
     }
 

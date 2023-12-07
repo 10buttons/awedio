@@ -102,7 +102,7 @@ a reference for this library:
     but this does not work well for some wrappers such as Speed.
   - Uses the standard Iterator trait for its Source. Awedio's Sound is its own
     enum that handles Metadata Changes, Pausing and Finishing sounds.
-  - Does not have a way to propogate errors through Sources. Awedio's sound
+  - Does not have a way to propagate errors through Sources. Awedio's sound
     returns a result so errors can be explicitly handled if desired.
 - [Kira](https://docs.rs/kira/)
   - Has very nice API for tweening and effects.

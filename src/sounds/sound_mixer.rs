@@ -124,7 +124,8 @@ impl Sound for SoundMixer {
                         break;
                     }
                     Err(e) => {
-                        // TODO probably want to let applications subscribe to be notified of these errors
+                        // TODO probably want to let applications subscribe to be notified of these
+                        // errors
                         log::error!("dropping sound in SoundMixer which returned error: {}", e);
                         to_remove.push((idx, false));
                         break;

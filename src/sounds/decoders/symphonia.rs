@@ -46,7 +46,7 @@ impl SymphoniaDecoder {
 
         let format = probed.format;
 
-        // Find the first audio track with a known (decodeable) codec.
+        // Find the first audio track with a known (decodable) codec.
         let track = format
             .tracks()
             .iter()
@@ -117,7 +117,8 @@ impl SymphoniaDecoder {
     fn decode_next_packet(&mut self) -> Result<bool, Error> {
         loop {
             let packet = self.format.next_packet()?;
-            // We don't currently use the metadata but pop it off so it does not take memory.
+            // We don't currently use the metadata but pop it off so it does not take
+            // memory.
             while !self.format.metadata().is_latest() {
                 self.format.metadata().pop();
             }

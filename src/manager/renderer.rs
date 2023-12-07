@@ -15,8 +15,8 @@ use crate::Sound;
 ///  1. storing the renderer
 ///  2. calling renderer.set_output_channel_count_and_sample_rate()
 ///  3. periodically calling renderer.on_start_of_batch() followed by some
-///     number of renderer.next_sample() calls (normally enough to fill
-///     some number of milliseconds of an output buffer).
+///     number of renderer.next_sample() calls (normally enough to fill some
+///     number of milliseconds of an output buffer).
 pub struct Renderer {
     mixer: Controllable<SoundMixer>,
 }

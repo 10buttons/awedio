@@ -104,7 +104,6 @@ where
         self.output_frame = Vec::with_capacity(channel_count as usize - 1);
     }
 
-    #[must_use]
     fn fill_frames(&mut self) -> Result<bool, crate::Error> {
         let from_rate = self.inner.sample_rate();
         let (first_samples, next_samples) = if from_rate == self.to_rate {
@@ -143,7 +142,6 @@ where
         Ok(true)
     }
 
-    #[must_use]
     fn next_input_frame(&mut self) -> Result<bool, crate::Error> {
         self.current_frame_pos_in_chunk += 1;
 
@@ -215,12 +213,10 @@ where
             return Ok(NextSample::Sample(sample));
         }
 
-        // Coming back from being paused. Refill our frames.
-        if self.current_frame.is_empty() {
-            if !self.fill_frames()? {
-                self.init();
-                return self.next_sample();
-            }
+        // Coming back from being paused or first run. Refill our frames.
+        if self.current_frame.is_empty() && !self.fill_frames()? {
+            self.init();
+            return self.next_sample();
         }
 
         // The frame we are going to return from this function will be a linear
@@ -265,10 +261,11 @@ where
         let mut result = None;
         let numerator =
             (self.from_rate_scaled * self.next_output_frame_pos_in_chunk) % self.to_rate_scaled;
-        // If we are coming back from a pause where the next frame
-        // was empty, lets fill both frames
+        // If we are coming back from a pause where the next frame was empty,
+        // lets fill both frames
         if self.current_frame.is_empty() && !self.next_frame.is_empty() {
-            if !self.next_input_frame()? {
+            let has_next = self.next_input_frame()?;
+            if !has_next {
                 self.init();
                 return self.next_sample();
             }

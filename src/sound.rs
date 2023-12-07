@@ -206,7 +206,8 @@ pub trait Sound: Send {
         to_return
     }
 
-    /// Play the first `duration` of the sound, then finish even if samples remain.
+    /// Play the first `duration` of the sound, then finish even if samples
+    /// remain.
     ///
     /// See [FinishAfter].
     fn finish_after(self, duration: Duration) -> FinishAfter<Self>
