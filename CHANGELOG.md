@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 - 2023-12-07
 
 - docs: update README
 - feat!: change Sound::next_sample to return Result
