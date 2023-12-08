@@ -46,13 +46,20 @@ fn open_file_with_reader(
         "qoa" => Box::new(super::decoders::QoaDecoder::new(reader)?),
         #[cfg(feature = "hound-wav")]
         "wav" => Box::new(super::decoders::WavDecoder::new(reader)?),
+        "_SILENCE_NEVER_MATCH_" => {
+            println!(
+                "Included to satisfy unused warnings when all features are off: {:?}",
+                reader
+            );
+            Box::new(crate::sounds::Silence::new(1, 1000))
+        }
         #[cfg(feature = "symphonia")]
         _ => Box::new(super::decoders::SymphoniaDecoder::new(
             Box::new(reader.into_inner()),
             Some(&extension),
         )?),
         #[cfg(not(feature = "symphonia"))]
-        _ => return Err(Box::new(std::io::Error::from(ErrorKind::Unsupported))),
+        _ => return Err(std::io::Error::from(std::io::ErrorKind::Unsupported).into()),
     };
     Ok(decoder)
 }

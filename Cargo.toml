@@ -42,3 +42,8 @@ cpal = { version = "0.14.2", optional = true }
 qoaudio = { version = "0.6", optional = true }
 symphonia = { version = "0.5.3", optional = true, default-features = false }
 log = "0.4.20"
+
+
+[[example]]
+name = "play"
+required-features = ["cpal"]

@@ -9,15 +9,14 @@ supported by [Symphonia](https://crates.io/crates/symphonia).
 
 Play a single sound file:
 
-```rust no_run
+```rust ignore
 let (mut manager, backend) = awedio::start()?;
 manager.play(awedio::sounds::open_file("test.wav")?);
-# Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
 Play a sound with adjustable volume controllable after playback has started:
 
-```rust no_run
+```rust ignore
 use awedio::Sound;
 let (mut manager, backend) = awedio::start()?;
 let (sound, mut controller) = awedio::sounds::SineWav::new(400.0)
@@ -29,7 +28,6 @@ std::thread::sleep(std::time::Duration::from_millis(100));
 controller.set_volume(0.5);
 std::thread::sleep(std::time::Duration::from_millis(100));
 controller.set_paused(true);
-# Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
 ## Design Goals
@@ -41,7 +39,7 @@ controller.set_paused(true);
 - Only pay the performance cost of features if they are needed. For example
   pausability, volume adjustment, or controlling a sound after playback has
   started are all added to a Sound only as needed. This is done by wrapping
-  types that implement [`Sound`] similar to `Iterator` in the standard library.
+  types that implement `Sound` similar to `Iterator` in the standard library.
 - Usable in low resource environments such as the esp32 microcontroller.
   Currently does require std.
 - Samples are i16 for simplicity at least for now (if this prevents you from
