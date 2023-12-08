@@ -1,20 +1,45 @@
 # Changelog
 
+## Unreleased
+
+Unreleased changes, if any, can be listed using `git log` or `git cliff -u`.
+
+## 0.3.1 - 2023-12-07
+
+### Bug Fixes
+
+- Errors when compiling without default features
+
 ## 0.3.0 - 2023-12-07
 
-- docs: update README
-- feat!: change Sound::next_sample to return Result
-- feat!: add Symphonia decoder which supports many formats and codecs
-  Note that feature flags were renamed to remove ambiguity.
-- feat: add finish after sound wrapper
-- docs: fix ambiguous doc reference
-- docs: add basic play example in examples/
-- feat: add CompletionNotifier (blocking, non-async)
-- fix: clear paused sounds too in SoundMixer
-- feat: re-export tokio oneshot in async_completion_notifier mod
-- feat: add Sound::paused which starts paused
-- feat: add QOA audio format decoder
-- feat: make Controller::send_command public
+### Bug Fixes
+
+- Clear paused sounds too in SoundMixer
+
+### Documentation
+
+- Add basic play example in examples/
+- Fix ambiguous doc reference
+- Update README
+
+### Features
+
+- Make Controller::send_command public
+- Add QOA audio format decoder
+- Add Sound::paused which starts paused
+- Re-export tokio oneshot in async_completion_notifier mod
+- Add CompletionNotifier (blocking, non-async)
+- Add finish after sound wrapper
+- [**breaking**] Add symphonia decoder
+- [**breaking**] Change Sound::next_sample to return Result
+
+### Performance
+
+- Do not round in AdjustableVolume
+
+### Refactor
+
+- Fixes for clippy, cspell, cargo format
 
 ## 0.2.0 - 2023-05-11
 
