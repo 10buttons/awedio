@@ -50,10 +50,12 @@ impl Sound for Renderer {
 
     /// Get the next sample.
     /// `MetadataChanged` will only be returned from Renderer if
-    /// `set_output_channel_count_and_sample_rate` was called. If `Paused` is
-    /// returned the backend may choose to pause itself or play silence (e.g.
-    /// `.next_sample().unwrap_or(0)`). `Finished` will be returned if no sounds
-    /// are playing and the Manager of the Renderer has been dropped.
+    /// `set_output_channel_count_and_sample_rate` was called. If `Paused`
+    /// is returned the backend may choose to pause itself or play silence.
+    /// `Finished` will be returned if no sounds are playing and the Manager of
+    /// the Renderer has been dropped.
+    ///
+    /// Guaranteed to not return an Error.
     fn next_sample(&mut self) -> Result<NextSample, crate::Error> {
         self.mixer.next_sample()
     }
