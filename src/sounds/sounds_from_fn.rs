@@ -83,6 +83,7 @@ impl Sound for SoundsFromFn {
             let sample = match sample {
                 Ok(s) => s,
                 Err(e) => {
+                    self.current = None;
                     self.current = (self.generator)();
                     self.update_metadata();
                     return Err(e);
@@ -97,6 +98,7 @@ impl Sound for SoundsFromFn {
                 NextSample::Finished => {
                     let old_channel_count = self.current_channel_count;
                     let old_sample_rate = self.current_sample_rate;
+                    self.current = None;
                     self.current = (self.generator)();
                     self.update_metadata();
                     if self.current.is_none() {
