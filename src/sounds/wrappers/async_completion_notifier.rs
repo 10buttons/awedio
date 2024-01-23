@@ -8,6 +8,10 @@ pub use tokio::sync::oneshot;
 
 /// Notify via a [tokio::sync::oneshot::Receiver] when the contained Sound has
 /// Finished.
+///
+/// If the Sound is dropped before it returned Finished then the receiver
+/// will return an error. The contained Sound pausing or yielding an error
+/// does not count as completion.
 pub struct AsyncCompletionNotifier<S: Sound> {
     inner: S,
     sender: Option<oneshot::Sender<()>>,

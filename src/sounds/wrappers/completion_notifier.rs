@@ -6,6 +6,10 @@ use std::sync::mpsc;
 /// Notify via a [std::sync::mpsc::Receiver] when the contained Sound has
 /// Finished. A single message is sent when the sound has completed.
 ///
+/// If the Sound is dropped before it returned Finished then the receiver
+/// will return an error. The contained Sound pausing or yielding an error
+/// does not count as completion.
+///
 /// See also [crate::Sound::with_async_completion_notifier]
 /// See also [super::AsyncCompletionNotifier]
 pub struct CompletionNotifier<S: Sound> {
