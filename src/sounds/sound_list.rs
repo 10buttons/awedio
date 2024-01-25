@@ -127,6 +127,15 @@ impl Default for SoundList {
     }
 }
 
+impl std::fmt::Debug for SoundList {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SoundList")
+            .field("sounds", &format!("{} sounds", self.sounds.len()))
+            .field("was_empty", &self.was_empty)
+            .finish()
+    }
+}
+
 #[cfg(test)]
 #[path = "./tests/sound_list.rs"]
 mod tests;
