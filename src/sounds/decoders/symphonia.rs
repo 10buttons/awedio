@@ -125,8 +125,32 @@ impl SymphoniaDecoder {
             if packet.track_id() != self.track_id {
                 continue;
             }
-            // TODO: Handle errors better when awedio allows returning errors.
-            let buf_ref = self.decoder.decode(&packet).expect("TODO");
+
+            // According to the Symphonia, some errors are indeed recoverable:
+            let buf_ref = match self.decoder.decode(&packet) {
+                Ok(buf_ref) => buf_ref,
+                // Recoverable, but this packet is void. Expect weird noises!
+                Err(Error::IoError(err)) => {
+                    if err.kind() == std::io::ErrorKind::UnexpectedEof
+                        && err.to_string() == "end of stream"
+                    {
+                        // According to Symphonia this is the only way to detect an end of stream
+                        return Err(Error::IoError(err));
+                    } else {
+                        log::warn!("IoError while decoding stream: {}", err);
+                        continue;
+                    }
+                }
+                Err(Error::DecodeError(e)) => {
+                    log::warn!("DecodeError while decoding stream: {}", e);
+                    continue;
+                }
+                // Reset required, which is handled correctly by this decoder
+                Err(Error::ResetRequired) => continue,
+                // All other errors are unrecoverable
+                Err(e) => return Err(e),
+            };
+
             self.next_channel_idx = 0;
             self.next_sample_idx = 0;
             let mut metadata_changed = false;
