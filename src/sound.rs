@@ -3,12 +3,15 @@ use std::{
     time::Duration,
 };
 
-use crate::sounds::{
-    wrappers::{
-        AdjustableSpeed, AdjustableVolume, Controllable, Controller, FinishAfter, Pausable,
-        SetPaused,
+use crate::{
+    sounds::{
+        wrappers::{
+            AdjustableSpeed, AdjustableVolume, Controllable, Controller, FinishAfter, Pausable,
+            SetPaused,
+        },
+        MemorySound,
     },
-    MemorySound,
+    utils,
 };
 
 /// A provider of audio samples.
@@ -216,6 +219,49 @@ pub trait Sound: Send {
     {
         FinishAfter::new(self, duration)
     }
+
+    /// Skip the next `duration` of samples.
+    ///
+    /// This is done by calling next_sample repeatadly.
+    ///
+    /// Returns true if all samples were successfully skipped, false if a Paused
+    /// or Finished were encountered first. MetadataChanged events are handled
+    /// correctly but are not returned.
+    fn skip(&mut self, duration: Duration) -> Result<bool, crate::Error> {
+        let mut current_channel_count = self.channel_count();
+        let mut current_sample_rate = self.sample_rate();
+        let mut num_samples_remaining =
+            utils::duration_to_num_samples(duration, current_channel_count, current_sample_rate);
+
+        while num_samples_remaining > 0 {
+            let next = self.next_sample()?;
+            match next {
+                NextSample::Sample(_) => {
+                    num_samples_remaining -= 1;
+                }
+                NextSample::MetadataChanged => {
+                    let new_channel_count = self.channel_count();
+                    let new_sample_rate = self.sample_rate();
+                    if new_channel_count != current_channel_count
+                        || new_sample_rate != current_sample_rate
+                    {
+                        num_samples_remaining = utils::convert_num_samples(
+                            num_samples_remaining,
+                            current_channel_count,
+                            current_sample_rate,
+                            new_channel_count,
+                            new_sample_rate,
+                        );
+                        current_channel_count = new_channel_count;
+                        current_sample_rate = new_sample_rate;
+                    }
+                }
+                NextSample::Paused => return Ok(false),
+                NextSample::Finished => return Ok(false),
+            }
+        }
+        Ok(true)
+    }
 }
 
 /// The result of [Sound::next_sample]
@@ -256,3 +302,7 @@ impl Sound for Box<dyn Sound> {
         self.deref_mut().next_sample()
     }
 }
+
+#[cfg(test)]
+#[path = "./tests/sound.rs"]
+mod tests;

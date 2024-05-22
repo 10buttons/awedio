@@ -5,6 +5,7 @@
 pub mod backends;
 pub mod manager;
 pub mod sounds;
+pub mod utils;
 
 mod error;
 mod sound;
