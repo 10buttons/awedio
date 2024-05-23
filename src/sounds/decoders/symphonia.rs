@@ -133,7 +133,7 @@ impl SymphoniaDecoder {
                 Err(Error::DecodeError(e)) => {
                     log::warn!("DecodeError while decoding stream: {}", e);
                     continue;
-                },
+                }
                 // Reset required, which is handled correctly by this decoder
                 Err(Error::ResetRequired) => continue,
                 // All other errors are unrecoverable
