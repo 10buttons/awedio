@@ -1,7 +1,7 @@
 //! [`CpalBackend`] outputs audio using the [cpal](https://www.docs.rs/cpal)
 //! crate.
 
-use crate::{manager::Manager, Sound};
+use crate::{manager::BackendSource, manager::Manager, Sound};
 use cpal::{
     traits::{DeviceTrait, HostTrait, StreamTrait},
     BuildStreamError, PlayStreamError, StreamError,

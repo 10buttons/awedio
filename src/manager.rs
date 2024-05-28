@@ -1,11 +1,13 @@
 //! Manager is how sounds are played on a backend.
+mod backend_source;
 mod renderer;
 
-pub use crate::manager::renderer::Renderer;
 use crate::sounds::wrappers::Controllable;
 use crate::sounds::wrappers::Controller;
 use crate::sounds::SoundMixer;
 use crate::Sound;
+pub use backend_source::BackendSource;
+pub use renderer::Renderer;
 
 /// A Manager can play sounds by rendering sounds on a [`Renderer`] for a
 /// backend.
