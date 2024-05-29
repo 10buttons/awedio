@@ -23,12 +23,12 @@ use crate::Sound;
 ///
 ///  1. storing the BackendSource
 ///  2. calling BackendSource::set_output_channel_count_and_sample_rate()
-///  3. periodically calling BackednSource::on_start_of_batch() followed by some
+///  3. periodically calling BackendSource::on_start_of_batch() followed by some
 ///     number of renderer.next_sample() calls (normally enough to fill some
 ///     number of milliseconds of an output buffer).
 pub trait BackendSource: Sound {
-    /// Set the output channel count and sample rate that the backend source should
-    /// provide to the backend via calls to Sound::next_sample.
+    /// Set the output channel count and sample rate that the backend source
+    /// should provide to the backend via calls to Sound::next_sample.
     fn set_output_channel_count_and_sample_rate(
         &mut self,
         output_channel_count: u16,

@@ -222,7 +222,7 @@ pub trait Sound: Send {
 
     /// Skip the next `duration` of samples.
     ///
-    /// This is done by calling next_sample repeatadly.
+    /// This is done by calling next_sample repeatedly.
     ///
     /// Returns true if all samples were successfully skipped, false if a Paused
     /// or Finished were encountered first. MetadataChanged events are handled
