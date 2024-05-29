@@ -124,9 +124,10 @@ impl CpalBackend {
             sample_rate: cpal::SampleRate(self.sample_rate),
             buffer_size: self.buffer_size.clone(),
         };
-        let stream = self
-            .device
-            .build_output_stream(&config, data_callback, error_callback)?;
+        let timeout = None;
+        let stream =
+            self.device
+                .build_output_stream(&config, data_callback, error_callback, timeout)?;
         stream.play()?;
         self.stream = Some(stream);
         Ok(manager)
