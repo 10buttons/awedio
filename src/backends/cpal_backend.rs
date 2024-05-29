@@ -122,7 +122,7 @@ impl CpalBackend {
         let config = cpal::StreamConfig {
             channels: self.channel_count,
             sample_rate: cpal::SampleRate(self.sample_rate),
-            buffer_size: self.buffer_size.clone(),
+            buffer_size: self.buffer_size,
         };
         let timeout = None;
         let stream =
