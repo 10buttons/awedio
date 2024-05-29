@@ -4,37 +4,46 @@
 
 Unreleased changes, if any, can be listed using `git log` or `git cliff -u`.
 
-## 0.3.2 - 2024-05-22
 
-### 🚀 Features
+## [0.4.0] - 2024-05-29
+
+### Features
+
+- Add BackendSource trait for Renderer
+- Update cpal and qoaudio deps
+
+
+## [0.3.2] - 2024-05-22
+
+### Features
 
 - Implement Debug for SoundList
 - Add count_samples example
 - Add Sound::skip
 
-### 🐛 Bug Fixes
+### Bug Fixes
 
 - Add cpal as required feature for play example
 - recover from some errors in SymphoniaDecoder
 
-### 📚 Documentation
+### Documentation
 
 - Improve Renderer::next_sample doc
 - Add more for completion notifiers
 
-### ⚡ Performance
+### Performance
 
 - Drop old sound before creating new in SoundsFromFn
 
 
-## 0.3.1 - 2023-12-07
+## [0.3.1] - 2023-12-07
 
 ### Bug Fixes
 
 - Errors when compiling without default features
 
 
-## 0.3.0 - 2023-12-07
+## [0.3.0] - 2023-12-07
 
 ### Bug Fixes
 
@@ -66,17 +75,17 @@ Unreleased changes, if any, can be listed using `git log` or `git cliff -u`.
 - Fixes for clippy, cspell, cargo format
 
 
-## 0.2.0 - 2023-05-11
+## [0.2.0] - 2023-05-11
 
 - update README links
 - rename UnexpectedMetadataChange to UnsupportedMetadataChangeError
 
 
-## 0.1.1 - 2023-05-10
+## [0.1.1] - 2023-05-10
 
 - Improved documentation
 
 
-## 0.1.0 - 2023-05-09
+## [0.1.0] - 2023-05-09
 
 - Initial release

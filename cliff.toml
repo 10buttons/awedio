@@ -1,0 +1,17 @@
+# git-cliff ~ default configuration file
+# https://git-cliff.org/docs/configuration
+
+[git]
+filter_unconventional = false
+# filter out the commits that are not matched by commit parsers
+filter_commits = false
+
+commit_parsers = [
+  { message = "^feat", group = "<!-- 0 -->Features" },
+  { message = "^fix", group = "<!-- 1 -->Bug Fixes" },
+  { message = "^doc", group = "<!-- 2 -->Documentation" },
+  { message = "^perf", group = "<!-- 3 -->Performance" },
+  { message = "^refactor", group = "<!-- 4 -->Refactor" },
+  { message = "^test", group = "<!-- 5 -->🧪 Testing" },
+  { message = "^release", skip = true },
+]
