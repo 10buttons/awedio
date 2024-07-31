@@ -4,6 +4,11 @@
 
 Unreleased changes, if any, can be listed using `git log` or `git cliff -u`.
 
+## [0.4.1] - 2024-07-31
+
+### Bug Fixes
+
+- Add device output stream sample format convert. Fix Mac OS output.
 
 ## [0.4.0] - 2024-05-29
 
